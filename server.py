@@ -18,10 +18,13 @@ while True:
     # Establish connection with client.    
     c, (client_host, client_port) = s.accept()
     print 'Got connection from', client_host, client_port
-
+    #@Add c.recv() to ensure page loads
+    print c.recv(1000)
     #send a response
     c.send('HTTP/1.0 200 OK\r\n')
-    c.send('Content-type: text/html\r\n')
-    c.send('<h1>Hello, world.')
+    #@ added missing blank line
+    c.send('Content-type: text/html\r\n\r\n')
+    #@Add close h1 tag
+    c.send('<h1>Hello, world.</h1>')
     c.send('This is ctb\'s Web server.')
     c.close()
