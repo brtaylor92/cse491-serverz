@@ -90,3 +90,38 @@ def test_post():
     conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
     expected_return = '200\r\n' + \
                       'Hello World'
+
+def test_get_form():
+    conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<form action=\'/submit\' method=\'GET\'>\r\n\t\t' + \
+                      '<input type=\'text\' name=\'firstname\'>\r\n\t\t' + \
+                      '<input type=\'text\' name=\'lastname\'>\r\n\t\t' + \
+                      '<input type=\'submit\' name=\'submit\'>\r\n\t\t' + \
+                      '</form>\r\n\t' + \
+                      '</body>\r\n</html>'
+
+def test_submit_get():
+    fname = "Ben"
+    lname = "Taylor"
+    conn = FakeConnection("GET /submit?firstname={0}&lastname={1} \
+                           HTTP/1.0\r\n\r\n".format(fname, lname))
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Hello {0} {1}'.format(fname, lname) + \
+                      '</body>\r\n</html>'
+
+def test_submit_post():
+    fname = "Ben"
+    lname = "Taylor"
+    conn = FakeConnection("POST /submit HTTP/1.1\r\n\
+                           Content-Type: application/x-www-form-urlencoded\r\n\r\n\
+                           firstname={0}&firstname={1}".format(fname, lname))
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Hello {0} {1}'.format(fname, lname) + \
+                      '</body>\r\n</html>'

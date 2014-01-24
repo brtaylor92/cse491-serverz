@@ -64,6 +64,29 @@ def submit(conn, args):
             '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
             '</body>\r\n</html>'
 
+def psubmit(conn, args):
+    try:
+        fname = args['firstname']
+        lastname = args['lastname']
+    except KeyError:
+        fname = ''
+        lastname = ''
+
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
+            '</body>\r\n</html>'
+
+def fof(conn):
+    # Page we don't have...
+    conn.send('HTTP/1.0 404 Not Found\r\n')
+    conn.send('Content-type: text/html\r\n\r\n')
+    conn.send('<html>\r\n\t<body>\r\n\t\t')
+    conn.send('<h1>Oops! Something went wrong...</h1>\r\n\t\t')
+    conn.send('We couldn\'t find that page\r\n\t')
+    conn.send('</body>\n</html>')
+
 def handle_get(conn, path):
     args = parse_qs(urlparse(path)[4])
     response = {'/' : index, \
@@ -76,17 +99,15 @@ def handle_get(conn, path):
     try:
         conn.send(response[urlparse(path)[2]](conn, args))
     except KeyError:
-        # Page we don't have...
-        conn.send('HTTP/1.0 404 Not Found\r\n')
-        conn.send('Content-type: text/html\r\n\r\n')
-        conn.send('<html>\r\n\t<body>\r\n\t\t')
-        conn.send('<h1>Oops! Something went wrong...</h1>\r\n\t\t')
-        conn.send('We couldn\'t find that page\r\n\t')
-        conn.send('</body>\n</html>')
+        fof(conn)
 
-def handle_post(conn):
-    conn.send('HTTP/1.0 200 OK\r\n\r\n')
-    conn.send('Hello World')
+def handle_post(conn, path, data):
+    args = parse_qs(data)
+    response = {'/submit' : submit,}
+    #try:
+    response[path](conn, args)
+    #except KeyError:
+    #    fof(conn)
 
 def handle_connection(conn):
     req = conn.recv(1000)
@@ -97,7 +118,7 @@ def handle_connection(conn):
         except IndexError:
             handle_get(conn, '/404')
     elif req[0:5] == 'POST ':
-        handle_post(conn)
+        handle_post(conn, req.split(' ', 3)[1], req.split('\r\n\r\n')[1])
     else:
         print req[0:5]
     # Done here
