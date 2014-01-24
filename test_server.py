@@ -32,13 +32,13 @@ def test_handle_connection_slash():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n' + \
                       '\r\n' + \
-                      '<html>\n\t<body>\n\t\t' + \
-                      '<h1>Hello, world.</h1>\n\t\t' + \
-                      'This is brtaylor92\'s Web server.<br />\n\t\t' + \
-                      '<a href=\'/content\'>Content</a><br />\n\t\t' + \
-                      '<a href=\'/file\'>Files</a><br />\n\t\t' + \
-                      '<a href=\'/image\'>Images</a><br />\n\t' + \
-                      '</body>\n</html>'
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Hello, world.</h1>\r\n\t\t' + \
+                      'This is brtaylor92\'s Web server.<br />\r\n\t\t' + \
+                      '<a href=\'/content\'>Content</a><br />\r\n\t\t' + \
+                      '<a href=\'/file\'>Files</a><br />\r\n\t\t' + \
+                      '<a href=\'/image\'>Images</a><br />\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 
@@ -49,10 +49,10 @@ def test_handle_connection_content():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n' + \
                       '\r\n' + \
-                      '<html>\n\t<body>\n\t\t' + \
-                      '<h1>Content Page</h1>\n\t\t' + \
-                      'Content goes here, once there is any :)\n\t' + \
-                      '</body>\n</html>'
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Content Page</h1>\r\n\t\t' + \
+                      'Content goes here, once there is any :)\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 
@@ -63,10 +63,10 @@ def test_handle_connection_file():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n' + \
                       '\r\n' + \
-                      '<html>\n\t<body>\n\t\t' + \
-                      '<h1>File Page</h1>\n\t\t' + \
-                      'Files go here, once there are any :)\n\t' + \
-                      '</body>\n</html>'
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>File Page</h1>\r\n\t\t' + \
+                      'Files go here, once there are any :)\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 
@@ -77,10 +77,10 @@ def test_handle_connection_image():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n' + \
                       '\r\n' + \
-                      '<html>\n\t<body>\n\t\t' + \
-                      '<h1>Image Page</h1>\n\t\t' + \
-                      'Images go here, once there are any :)\n\t' + \
-                      '</body>\n</html>'
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Image Page</h1>\r\n\t\t' + \
+                      'Images go here, once there are any :)\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 

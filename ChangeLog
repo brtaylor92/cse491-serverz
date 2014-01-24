@@ -10,3 +10,8 @@
 	*	Updated server.py to respond to different URLs, post requests
 	*	Added a nose test script
 	*	Fixed server.py to pass nose tests
+
+2014-01-23  Ben Taylor  <taylo886@arctic.cse.msu.edu>
+	*	Updated server.py to split  less
+	*	Replaced multiple if/else with dict
+	*	Updated tests slightly to match modified html content
