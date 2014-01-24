@@ -2,39 +2,80 @@
 import random
 import socket
 import time
+from urlparse import urlparse, parse_qs
+
+def index(conn, args):
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Hello, world.</h1>\r\n\t\t' + \
+            'This is brtaylor92\'s Web server.<br />\r\n\t\t' + \
+            '<a href=\'/content\'>Content</a><br />\r\n\t\t' + \
+            '<a href=\'/file\'>Files</a><br />\r\n\t\t' + \
+            '<a href=\'/image\'>Images</a><br />\r\n\t' + \
+            '</body>\r\n</html>'
+
+def file(conn, args):
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>File Page</h1>\r\n\t\t' + \
+            'Files go here, once there are any :)\r\n\t' + \
+            '</body>\r\n</html>'
+
+def content(conn, args):
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Content Page</h1>\r\n\t\t' + \
+            'Content goes here, once there is any :)\r\n\t' + \
+            '</body>\r\n</html>'
+
+def image(conn, args):
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Image Page</h1>\r\n\t\t' + \
+            'Images go here, once there are any :)\r\n\t' + \
+            '</body>\r\n</html>'
+
+def form(conn, args):
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<form action=\'/submit\' method=\'GET\'>\r\n\t\t' + \
+            '<input type=\'text\' name=\'firstname\'>\r\n\t\t' + \
+            '<input type=\'text\' name=\'lastname\'>\r\n\t\t' + \
+            '<input type=\'submit\' name=\'submit\'>\r\n\t\t' + \
+            '</form>\r\n\t' + \
+            '</body>\r\n</html>'
+
+def submit(conn, args):
+    try:
+        fname = args['firstname']
+        lastname = args['lastname']
+    except KeyError:
+        fname = ''
+        lastname = ''
+
+    return  'HTTP/1.0 200 OK\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
+            '</body>\r\n</html>'
 
 def handle_get(conn, path):
-    response = {'/' : 'HTTP/1.0 200 OK\r\n' + \
-                        'Content-type: text/html\r\n\r\n' + \
-                        '<html>\r\n\t<body>\r\n\t\t' + \
-                        '<h1>Hello, world.</h1>\r\n\t\t' + \
-                        'This is brtaylor92\'s Web server.<br />\r\n\t\t' + \
-                        '<a href=\'/content\'>Content</a><br />\r\n\t\t' + \
-                        '<a href=\'/file\'>Files</a><br />\r\n\t\t' + \
-                        '<a href=\'/image\'>Images</a><br />\r\n\t' + \
-                        '</body>\r\n</html>', \
-                 '/content' : 'HTTP/1.0 200 OK\r\n' + \
-                              'Content-type: text/html\r\n\r\n' + \
-                              '<html>\r\n\t<body>\r\n\t\t' + \
-                              '<h1>Content Page</h1>\r\n\t\t' + \
-                              'Content goes here, once there is any :)\r\n\t' + \
-                              '</body>\r\n</html>', \
-                 '/file' : 'HTTP/1.0 200 OK\r\n' + \
-                           'Content-type: text/html\r\n\r\n' + \
-                           '<html>\r\n\t<body>\r\n\t\t' + \
-                           '<h1>File Page</h1>\r\n\t\t' + \
-                           'Files go here, once there are any :)\r\n\t' + \
-                           '</body>\r\n</html>', \
-                 '/image' : 'HTTP/1.0 200 OK\r\n' + \
-                            'Content-type: text/html\r\n\r\n' + \
-                            '<html>\r\n\t<body>\r\n\t\t' + \
-                            '<h1>Image Page</h1>\r\n\t\t' + \
-                            'Images go here, once there are any :)\r\n\t' +\
-                            '</body>\r\n</html>'
-                }
+    args = parse_qs(urlparse(path)[4])
+    response = {'/' : index, \
+              '/content' : content, \
+              '/file' : file, \
+              '/image' : image, \
+              '/form' : form, \
+              '/submit' : submit, \
+             }
     try:
-        conn.send(response[path])
-    except:
+        conn.send(response[urlparse(path)[2]](conn, args))
+    except KeyError:
         # Page we don't have...
         conn.send('HTTP/1.0 404 Not Found\r\n')
         conn.send('Content-type: text/html\r\n\r\n')
