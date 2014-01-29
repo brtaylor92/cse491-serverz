@@ -43,7 +43,7 @@ def form(conn, args):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
-            '<form action=\'/submit\' method=\'GET\'>\r\n\t\t' + \
+            '<form action=\'/submit\' method=\'POST\'>\r\n\t\t' + \
             '<input type=\'text\' name=\'firstname\'>\r\n\t\t' + \
             '<input type=\'text\' name=\'lastname\'>\r\n\t\t' + \
             '<input type=\'submit\' name=\'submit\'>\r\n\t\t' + \
@@ -76,6 +76,7 @@ def psubmit(conn, args):
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
             '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
+            '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
 def fof(conn):
@@ -103,11 +104,11 @@ def handle_get(conn, path):
 
 def handle_post(conn, path, data):
     args = parse_qs(data)
-    response = {'/submit' : submit,}
-    #try:
-    response[path](conn, args)
-    #except KeyError:
-    #    fof(conn)
+    response = {'/submit' : psubmit,}
+    try:
+        conn.send(response[path](conn, args))
+    except KeyError:
+        conn.send(fof(conn))
 
 def handle_connection(conn):
     req = conn.recv(1000)
