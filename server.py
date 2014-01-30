@@ -100,6 +100,8 @@ def handle_get(conn, path):
     try:
         conn.send(response[urlparse(path)[2]](conn, args))
     except KeyError:
+        print path
+        print "Yarp 1"
         conn.send(fof(conn))
 
 def handle_post(conn, path, data):
@@ -108,6 +110,8 @@ def handle_post(conn, path, data):
     try:
         conn.send(response[path](conn, args))
     except KeyError:
+        print "Yarp 2"
+        print conn.sent
         conn.send(fof(conn))
 
 def handle_connection(conn):
@@ -117,6 +121,7 @@ def handle_connection(conn):
             path = req.split(' ', 3)[1]
             handle_get(conn, path)
         except IndexError:
+            print "Narp"
             handle_get(conn, '/404')
     elif req.startswith('POST '):
         handle_post(conn, req.split(' ', 3)[1], req.split('\r\n\r\n')[1])

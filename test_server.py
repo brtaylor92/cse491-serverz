@@ -126,12 +126,12 @@ def test_malformed_get():
     fname = "Ben"
     conn = FakeConnection("GET /submit?firstname={0} \
                            HTTP/1.0\r\n\r\n".format(fname))
-    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
-                      'We couldn\'t find that page\r\n\t' + \
-                      '</body>\n</html>'
+                      '<h1>Hello {0}'.format(fname) + \
+                      '</h1>\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 
@@ -163,12 +163,12 @@ def test_malformed_post():
                            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
                            "firstname={0}".format(fname))
 
-    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
-                      'We couldn\'t find that page\r\n\t' + \
-                      '</body>\n</html>'
+                      '<h1>Hello {0}'.format(fname) + \
+                      '</h1>\r\n\t' + \
+                      '</body>\r\n</html>'
 
     server.handle_connection(conn)
 
