@@ -81,12 +81,12 @@ def psubmit(conn, args):
 
 def fof(conn):
     # Page we don't have...
-    conn.send('HTTP/1.0 404 Not Found\r\n')
-    conn.send('Content-type: text/html\r\n\r\n')
-    conn.send('<html>\r\n\t<body>\r\n\t\t')
-    conn.send('<h1>Oops! Something went wrong...</h1>\r\n\t\t')
-    conn.send('We couldn\'t find that page\r\n\t')
-    conn.send('</body>\n</html>')
+    return  'HTTP/1.0 404 Not Found\r\n' + \
+            'Content-type: text/html\r\n\r\n' + \
+            '<html>\r\n\t<body>\r\n\t\t' + \
+            '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
+            'We couldn\'t find that page\r\n\t' + \
+            '</body>\n</html>'
 
 def handle_get(conn, path):
     args = parse_qs(urlparse(path)[4])
@@ -100,9 +100,10 @@ def handle_get(conn, path):
     try:
         conn.send(response[urlparse(path)[2]](conn, args))
     except KeyError:
-        fof(conn)
+        conn.send(fof(conn))
 
 def handle_post(conn, path, data):
+    print path
     args = parse_qs(data)
     response = {'/submit' : psubmit,}
     try:
@@ -112,13 +113,13 @@ def handle_post(conn, path, data):
 
 def handle_connection(conn):
     req = conn.recv(1000)
-    if req[0:4] == 'GET ':
+    if req.startswith('GET '):
         try:
             path = req.split(' ', 3)[1]
             handle_get(conn, path)
         except IndexError:
             handle_get(conn, '/404')
-    elif req[0:5] == 'POST ':
+    elif req.startswith('POST '):
         handle_post(conn, req.split(' ', 3)[1], req.split('\r\n\r\n')[1])
     else:
         print req[0:5]
