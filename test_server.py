@@ -122,18 +122,53 @@ def test_submit_get():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
+def test_malformed_get():
+    fname = "Ben"
+    conn = FakeConnection("GET /submit?firstname={0} \
+                           HTTP/1.0\r\n\r\n".format(fname))
+    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
+                      'We couldn\'t find that page\r\n\t' + \
+                      '</body>\n</html>'
+
+    server.handle_connection(conn)
+
+    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)   
+
 def test_submit_post():
     fname = "Ben"
     lname = "Taylor"
-    conn = FakeConnection("POST /submit HTTP/1.0\r\n\
-                           Content-Type: application/x-www-form-urlencoded\r\n\r\n\
-                           firstname={0}&firstname={1}".format(fname, lname))
+    conn = FakeConnection("POST /submit HTTP/1.0\r\n" + \
+                           "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
+                           "firstname={0}&lastname={1}".format(fname, lname))
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello {0} {1}'.format(fname, lname) + \
-            '</h1>\r\n\t' + \
-            '</body>\r\n</html>'
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Hello {0} {1}'.format(fname, lname) + \
+                      '</h1>\r\n\t' + \
+                      '</body>\r\n</html>'
+
+    server.handle_connection(conn)
+
+    print (conn.sent,)
+    print (expected_return,)
+
+    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+
+def test_malformed_post():
+    fname = "Ben"
+    conn = FakeConnection("POST /submit HTTP/1.0\r\n" + \
+                           "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
+                           "firstname={0}".format(fname))
+
+    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
+                      'We couldn\'t find that page\r\n\t' + \
+                      '</body>\n</html>'
 
     server.handle_connection(conn)
 
@@ -141,6 +176,19 @@ def test_submit_post():
 
 def test_404():
     conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
+    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
+                      'Content-type: text/html\r\n\r\n' + \
+                      '<html>\r\n\t<body>\r\n\t\t' + \
+                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
+                      'We couldn\'t find that page\r\n\t' + \
+                      '</body>\n</html>'
+
+    server.handle_connection(conn)
+
+    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+
+def test_malformed():
+    conn = FakeConnection("GET ")
     expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \

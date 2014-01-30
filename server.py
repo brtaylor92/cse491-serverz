@@ -103,7 +103,6 @@ def handle_get(conn, path):
         conn.send(fof(conn))
 
 def handle_post(conn, path, data):
-    print path
     args = parse_qs(data)
     response = {'/submit' : psubmit,}
     try:
