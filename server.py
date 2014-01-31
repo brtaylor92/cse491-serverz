@@ -4,7 +4,7 @@ import socket
 import time
 from urlparse import urlparse, parse_qs
 
-def index(conn, args):
+def index(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
@@ -15,7 +15,7 @@ def index(conn, args):
             '<a href=\'/image\'>Images</a><br />\r\n\t' + \
             '</body>\r\n</html>'
 
-def file(conn, args):
+def file(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
@@ -23,7 +23,7 @@ def file(conn, args):
             'Files go here, once there are any :)\r\n\t' + \
             '</body>\r\n</html>'
 
-def content(conn, args):
+def content(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
@@ -31,7 +31,7 @@ def content(conn, args):
             'Content goes here, once there is any :)\r\n\t' + \
             '</body>\r\n</html>'
 
-def image(conn, args):
+def image(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
@@ -39,7 +39,7 @@ def image(conn, args):
             'Images go here, once there are any :)\r\n\t' + \
             '</body>\r\n</html>'
 
-def form(conn, args):
+def form(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
@@ -50,12 +50,12 @@ def form(conn, args):
             '</form>\r\n\t' + \
             '</body>\r\n</html>'
 
-def submit(conn, args):
+def submit(conn, **kwargs):
     fname = ''
     lname = ''
     try:
-        fname = args['firstname'][0]
-        lname = args['lastname'][0]
+        fname = kwargs['firstname'][0]
+        lname = kwargs['lastname'][0]
     except KeyError:
         pass
 
@@ -66,12 +66,12 @@ def submit(conn, args):
             '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
-def psubmit(conn, args):
+def psubmit(conn, **kwargs):
     fname = ''
     lname = ''
     try:
-        fname = args['firstname'][0]
-        lname = args['lastname'][0]
+        fname = kwargs['firstname'][0]
+        lname = kwargs['lastname'][0]
     except KeyError:
         pass
 
@@ -82,7 +82,7 @@ def psubmit(conn, args):
             '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
-def fof(conn):
+def fof(conn, **kwargs):
     # Page we don't have...
     return  'HTTP/1.0 404 Not Found\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
@@ -101,17 +101,17 @@ def handle_get(conn, path):
               '/submit' : submit, \
              }
     try:
-        conn.send(response[urlparse(path)[2]](conn, args))
+        conn.send(response[urlparse(path)[2]](conn, **args))
     except KeyError:
-        conn.send(fof(conn))
+        conn.send(fof(conn, **args))
 
 def handle_post(conn, path, data):
     args = parse_qs(data)
     response = {'/submit' : psubmit,}
     try:
-        conn.send(response[path](conn, args))
+        conn.send(response[path](conn, **args))
     except KeyError:
-        conn.send(fof(conn))
+        conn.send(fof(conn, **args))
 
 def handle_connection(conn):
     req = conn.recv(1000)
