@@ -51,31 +51,34 @@ def form(conn, args):
             '</body>\r\n</html>'
 
 def submit(conn, args):
+    fname = ''
+    lname = ''
     try:
-        fname = args['firstname']
-        lastname = args['lastname']
+        fname = args['firstname'][0]
+        lname = args['lastname'][0]
     except KeyError:
-        fname = ''
-        lastname = ''
+        pass
 
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
+            '<h1>Hello {0} {1}'.format(fname, lname) + \
+            '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
 def psubmit(conn, args):
+    fname = ''
+    lname = ''
     try:
-        fname = args['firstname']
-        lastname = args['lastname']
+        fname = args['firstname'][0]
+        lname = args['lastname'][0]
     except KeyError:
-        fname = ''
-        lastname = ''
+        pass
 
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
             '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello {0} {1}'.format(args['firstname'][0], args['lastname'][0]) + \
+            '<h1>Hello {0} {1}'.format(fname, lname) + \
             '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
@@ -100,8 +103,6 @@ def handle_get(conn, path):
     try:
         conn.send(response[urlparse(path)[2]](conn, args))
     except KeyError:
-        print path
-        print "Yarp 1"
         conn.send(fof(conn))
 
 def handle_post(conn, path, data):
@@ -110,8 +111,6 @@ def handle_post(conn, path, data):
     try:
         conn.send(response[path](conn, args))
     except KeyError:
-        print "Yarp 2"
-        print conn.sent
         conn.send(fof(conn))
 
 def handle_connection(conn):
@@ -119,10 +118,9 @@ def handle_connection(conn):
     if req.startswith('GET '):
         try:
             path = req.split(' ', 3)[1]
-            handle_get(conn, path)
         except IndexError:
-            print "Narp"
             handle_get(conn, '/404')
+        handle_get(conn, path)
     elif req.startswith('POST '):
         handle_post(conn, req.split(' ', 3)[1], req.split('\r\n\r\n')[1])
     else:

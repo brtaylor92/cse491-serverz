@@ -25,8 +25,6 @@ class FakeConnection(object):
     def close(self):
         self.is_closed = True
 
-# Test a basic GET call.
-
 def test_handle_connection_slash():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
@@ -116,6 +114,7 @@ def test_submit_get():
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
                       '<h1>Hello {0} {1}'.format(fname, lname) + \
+                      '</h1>\r\n\t' + \
                       '</body>\r\n</html>'
 
     server.handle_connection(conn)
@@ -129,7 +128,7 @@ def test_malformed_get():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Hello {0}'.format(fname) + \
+                      '<h1>Hello {0} '.format(fname) + \
                       '</h1>\r\n\t' + \
                       '</body>\r\n</html>'
 
@@ -152,9 +151,6 @@ def test_submit_post():
 
     server.handle_connection(conn)
 
-    print (conn.sent,)
-    print (expected_return,)
-
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
 def test_malformed_post():
@@ -166,7 +162,7 @@ def test_malformed_post():
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Hello {0}'.format(fname) + \
+                      '<h1>Hello {0} '.format(fname) + \
                       '</h1>\r\n\t' + \
                       '</body>\r\n</html>'
 
