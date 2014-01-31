@@ -55,6 +55,9 @@ def submit(conn, **kwargs):
     lname = ''
     try:
         fname = kwargs['firstname'][0]
+    except KeyError:
+        pass
+    try:
         lname = kwargs['lastname'][0]
     except KeyError:
         pass
@@ -71,6 +74,9 @@ def psubmit(conn, **kwargs):
     lname = ''
     try:
         fname = kwargs['firstname'][0]
+    except KeyError:
+        pass
+    try:
         lname = kwargs['lastname'][0]
     except KeyError:
         pass
