@@ -15,3 +15,7 @@
 	*	Updated server.py to split  less
 	*	Replaced multiple if/else with dict
 	*	Updated tests slightly to match modified html content
+2014-01-30  Ben Taylor <taylo886@arctic.cse.msu.edu>
+	*	Revamp tests
+	*	Fix POST
+	*	Check and increase test coverage
