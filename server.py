@@ -3,6 +3,9 @@ import random
 import socket
 import time
 from urlparse import urlparse, parse_qs
+import cgi
+import StringIO
+import re
 
 def index(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
@@ -73,13 +76,22 @@ def psubmit(conn, **kwargs):
     fname = ''
     lname = ''
     try:
-        fname = kwargs['firstname'][0]
+        fname = kwargs['firstname']
     except KeyError:
         pass
     try:
-        lname = kwargs['lastname'][0]
+        lname = kwargs['lastname']
     except KeyError:
         pass
+
+    arg0 = StringIO.StringIO(kwargs['data'])
+    print kwargs
+    kwargs.pop('data')
+    print kwargs
+
+    data = cgi.FieldStorage(fp=arg0, headers=kwargs)
+
+    print list(data)
 
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
@@ -111,8 +123,11 @@ def handle_get(conn, path):
     except KeyError:
         conn.send(fof(conn, **args))
 
-def handle_post(conn, path, data):
-    args = parse_qs(data)
+def handle_post(conn, req):
+    path = req.split(' ', 3)[1]
+    data = req.split('\r\n\r\n', 1)[1]
+    args = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", req))
+    args['data'] = data 
     response = {'/submit' : psubmit,}
     try:
         conn.send(response[path](conn, **args))
@@ -128,7 +143,7 @@ def handle_connection(conn):
             handle_get(conn, '/404')
         handle_get(conn, path)
     elif req.startswith('POST '):
-        handle_post(conn, req.split(' ', 3)[1], req.split('\r\n\r\n')[1])
+        handle_post(conn, req)
     else:
         print req[0:5]
     # Done here
