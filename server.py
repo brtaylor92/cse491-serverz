@@ -49,7 +49,7 @@ def handle_connection(conn):
     args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
 
     # Check if we got a path to an existing page
-    if response.get(path[2]):
+    if path[2] in response:
         template = env.get_template(response[path[2]])
     else:
         args['path'] = path[2]
