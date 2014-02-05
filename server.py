@@ -57,7 +57,7 @@ def handle_connection(conn):
         template = env.get_template(response[path[2]])
     except KeyError:
         args['path'] = path[2]
-        retval = 'HTTP/1.0 404 Not Found\r\n'
+        retval = 'HTTP/1.0 404 Not Found\r\n\r\n'
         template = env.get_template('404.html')
 
     # Render the page
