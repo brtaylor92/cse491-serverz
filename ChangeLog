@@ -19,3 +19,6 @@
 	*	Revamp tests
 	*	Fix POST
 	*	Check and increase test coverage
+2014-02-05  Ben Taylor <taylo886@arctic.cse.msu.edu>
+	*	Fix FieldStorage
+	*	Update to work with arbitrary length requests
