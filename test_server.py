@@ -65,6 +65,14 @@ def test_get_form():
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
+def test_404():
+    conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
+    er = 'HTTP/1.0 404 Not Found\r\n'
+
+    server.handle_connection(conn)
+
+    assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
+
 def test_submit_get():
     fname = "Ben"
     lname = "Taylor"
@@ -83,16 +91,11 @@ def test_submit_post_urlencoded():
                            "Content-Length: 29\r\n" + \
                            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
                            "firstname={0}&lastname={1}\r\n".format(fname, lname))
-    expected_return = 'HTTP/1.0 200 OK\r\n' + \
-                      'Content-type: text/html\r\n\r\n' + \
-                      '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Hello {0} {1}'.format(fname, lname) + \
-                      '</h1>\r\n\t' + \
-                      '</body>\r\n</html>'
+    er = 'HTTP/1.0 200 OK\r\n'
 
     server.handle_connection(conn)
 
-    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+    assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
 def test_submit_post_multipart():
     conn = FakeConnection("POST /submit HTTP/1.0\r\n" + \
@@ -115,22 +118,19 @@ def test_submit_post_multipart():
                     )
     fname = 'ben'
     lname = 'taylor'
-    expected_return = 'HTTP/1.0 200 OK\r\n' + \
-                      'Content-type: text/html\r\n\r\n' + \
-                      '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Hello {0} {1}'.format(fname, lname) + \
-                      '</h1>\r\n\t' + \
-                      '</body>\r\n</html>'
+    er = 'HTTP/1.0 200 OK\r\n'
 
     server.handle_connection(conn)
 
-    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+    assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
+def test_submit_post_404():
+    conn = FakeConnection("POST /asdf HTTP/1.0\r\n" + \
+                          "Content-Length: 0\r\n" + \
+                          "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
+                         )
+    server.handle_connection(conn)
 
-def test_404():
-    conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 404 Not Found\r\n'
-
-    server.handle_connection(conn)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)

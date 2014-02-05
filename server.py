@@ -8,45 +8,6 @@ import StringIO
 import re
 import jinja2
 
-def submit(conn, **kwargs):
-    fname = ''
-    lname = ''
-    try:
-        fname = kwargs['firstname'][0]
-    except KeyError:
-        pass
-    try:
-        lname = kwargs['lastname'][0]
-    except KeyError:
-        pass
-
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello {0} {1}'.format(fname, lname) + \
-            '</h1>\r\n\t' + \
-            '</body>\r\n</html>'
-
-def psubmit(conn, **kwargs):
-    arg0 = StringIO.StringIO(kwargs['data'])
-    kwargs = dict([(k.lower(), v) for k,v in kwargs.iteritems()])
-    kwargs.pop('data')
-
-    e = {}
-    e['REQUEST_METHOD'] = 'POST'
-
-    data = cgi.FieldStorage(fp=arg0, headers=kwargs, environ=e)
-
-    fname = data['firstname'].value
-    lname = data['lastname'].value
-
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello {0} {1}'.format(fname, lname) + \
-            '</h1>\r\n\t' + \
-            '</body>\r\n</html>'
-
 def handle_get(conn, path):
     args = parse_qs(urlparse(path)[4])
     response = {'/' : 'index.html', \
@@ -70,11 +31,28 @@ def handle_get(conn, path):
     conn.send(retval)
 
 def handle_post(conn, path, **kwargs):
-    response = {'/submit' : psubmit,}
+    arg0 = StringIO.StringIO(kwargs['data'])
+    kwargs.pop('data')
+
+    e = {}
+    e['REQUEST_METHOD'] = 'POST'
+
+    data = cgi.FieldStorage(fp=arg0, headers=kwargs, environ=e)
+
+    args = dict([(x, [data[x].value]) for x in data.keys()])
+    response = {'/submit' : 'submit.html',}
+    loader = jinja2.FileSystemLoader('./templates')
+    env = jinja2.Environment(loader=loader)
+    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n'
     try:
-        conn.send(response[path](conn, **kwargs))
+        path = response[urlparse(path)[2]]
     except KeyError:
-        conn.send(fof(conn, **kwargs))
+        args['path'] = path
+        retval = 'HTTP/1.0 404 Not Found\r\n'
+        path = '404.html'
+    template = env.get_template(path)
+    retval += template.render(args)
+    conn.send(retval)
 
 def handle_connection(conn):
     req = conn.recv(1)
