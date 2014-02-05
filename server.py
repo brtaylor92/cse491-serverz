@@ -49,9 +49,9 @@ def handle_connection(conn):
     args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
 
     # Check if we got a path to an existing page
-    try:
+    if response.get(path[2]):
         template = env.get_template(response[path[2]])
-    except KeyError:
+    else:
         args['path'] = path[2]
         retval = 'HTTP/1.0 404 Not Found\r\n\r\n'
         template = env.get_template('404.html')
