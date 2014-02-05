@@ -48,11 +48,8 @@ def handle_connection(conn):
         while len(data) < l:
             data += conn.recv(1)
         e = {'REQUEST_METHOD' : 'POST'}
-        d = cgi.FieldStorage(fp=StringIO(data), headers=args, environ=e)
-        try:
-            args = dict([(x, [d[x].value]) for x in d.keys()])
-        except AttributeError:
-            pass
+        fs = cgi.FieldStorage(fp=StringIO(data), headers=d, environ=e)
+        args = dict([(x, [fs[x].value]) for x in fs.keys()])
 
     # Check if we got a path to an existing page
     try:
@@ -64,7 +61,6 @@ def handle_connection(conn):
         template = env.get_template('404.html')
 
     # Render the page
-    print template
     retval += template.render(args)
     conn.send(retval)
 
