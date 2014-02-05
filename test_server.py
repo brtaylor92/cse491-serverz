@@ -84,11 +84,6 @@ def test_handle_connection_image():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
-def test_post():
-    conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
-    expected_return = '200\r\n' + \
-                      'Hello World'
-
 def test_get_form():
     conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
@@ -136,12 +131,13 @@ def test_malformed_get():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)   
 
-def test_submit_post():
+def test_submit_post_urlencoded():
     fname = "Ben"
     lname = "Taylor"
     conn = FakeConnection("POST /submit HTTP/1.0\r\n" + \
+                           "Content-Length: 29\r\n" + \
                            "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
-                           "firstname={0}&lastname={1}".format(fname, lname))
+                           "firstname={0}&lastname={1}\r\n".format(fname, lname))
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
@@ -153,16 +149,31 @@ def test_submit_post():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
-def test_malformed_post():
-    fname = "Ben"
+def test_submit_post_multipart():
     conn = FakeConnection("POST /submit HTTP/1.0\r\n" + \
-                           "Content-Type: application/x-www-form-urlencoded\r\n\r\n" + \
-                           "firstname={0}".format(fname))
-
+                          "Content-Length: 374\r\n" + \
+                          "Content-Type: multipart/form-data; " + \
+                          "boundary=32452685f36942178a5f36fd94e34b63\r\n\r\n" + \
+                          "--32452685f36942178a5f36fd94e34b63\r\n" + \
+                          "Content-Disposition: form-data; name=\"lastname\";" + \
+                          " filename=\"lastname\"\r\n\r\n" + \
+                          "taylor\r\n" + \
+                          "--32452685f36942178a5f36fd94e34b63\r\n" + \
+                          "Content-Disposition: form-data; name=\"firstname\";" + \
+                          " filename=\"firstname\"\r\n\r\n" + \
+                          "ben\r\n" + \
+                          "--32452685f36942178a5f36fd94e34b63\r\n" + \
+                          "Content-Disposition: form-data; name=\"key\";" + \
+                          " filename=\"key\"\r\n\r\n" + \
+                          "value\r\n" + \
+                          "--32452685f36942178a5f36fd94e34b63--\r\n"
+                    )
+    fname = 'ben'
+    lname = 'taylor'
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Hello {0} '.format(fname) + \
+                      '<h1>Hello {0} {1}'.format(fname, lname) + \
                       '</h1>\r\n\t' + \
                       '</body>\r\n</html>'
 
@@ -170,21 +181,9 @@ def test_malformed_post():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
 
+
 def test_404():
     conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
-    expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
-                      'Content-type: text/html\r\n\r\n' + \
-                      '<html>\r\n\t<body>\r\n\t\t' + \
-                      '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
-                      'We couldn\'t find that page\r\n\t' + \
-                      '</body>\n</html>'
-
-    server.handle_connection(conn)
-
-    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
-
-def test_malformed():
-    conn = FakeConnection("GET ")
     expected_return = 'HTTP/1.0 404 Not Found\r\n' + \
                       'Content-type: text/html\r\n\r\n' + \
                       '<html>\r\n\t<body>\r\n\t\t' + \

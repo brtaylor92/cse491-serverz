@@ -73,25 +73,17 @@ def submit(conn, **kwargs):
             '</body>\r\n</html>'
 
 def psubmit(conn, **kwargs):
-    fname = ''
-    lname = ''
-    try:
-        fname = kwargs['firstname']
-    except KeyError:
-        pass
-    try:
-        lname = kwargs['lastname']
-    except KeyError:
-        pass
-
     arg0 = StringIO.StringIO(kwargs['data'])
-    print kwargs
+    kwargs = dict([(k.lower(), v) for k,v in kwargs.iteritems()])
     kwargs.pop('data')
-    print kwargs
 
-    data = cgi.FieldStorage(fp=arg0, headers=kwargs)
+    e = {}
+    e['REQUEST_METHOD'] = 'POST'
 
-    print list(data)
+    data = cgi.FieldStorage(fp=arg0, headers=kwargs, environ=e)
+
+    fname = data['firstname'].value
+    lname = data['lastname'].value
 
     return  'HTTP/1.0 200 OK\r\n' + \
             'Content-type: text/html\r\n\r\n' + \
@@ -123,29 +115,36 @@ def handle_get(conn, path):
     except KeyError:
         conn.send(fof(conn, **args))
 
-def handle_post(conn, req):
-    path = req.split(' ', 3)[1]
-    data = req.split('\r\n\r\n', 1)[1]
-    args = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", req))
-    args['data'] = data 
+def handle_post(conn, path, **kwargs):
     response = {'/submit' : psubmit,}
     try:
-        conn.send(response[path](conn, **args))
+        conn.send(response[path](conn, **kwargs))
     except KeyError:
-        conn.send(fof(conn, **args))
+        conn.send(fof(conn, **kwargs))
 
 def handle_connection(conn):
-    req = conn.recv(1000)
+    req = conn.recv(1)
+    count = 0
+    while req[-4:] != '\r\n\r\n':
+        req += conn.recv(1)
+    req, headers = req.split('\r\n',1)
+    d = {}
+    for line in headers.split('\r\n')[:-2]:
+        k, v = line.split(': ', 1)
+        d[k.lower()] = v
     if req.startswith('GET '):
-        try:
-            path = req.split(' ', 3)[1]
-        except IndexError:
-            handle_get(conn, '/404')
+        path = req.split(' ', 3)[1]
         handle_get(conn, path)
     elif req.startswith('POST '):
-        handle_post(conn, req)
+        path = req.split(' ', 3)[1]
+        l = int(d['content-length'])
+        data = ''
+        while len(data) < l:
+            data += conn.recv(1)
+        d['data'] = data
+        handle_post(conn, path, **d)
     else:
-        print req[0:5]
+        print req
     # Done here
     conn.close()
 
