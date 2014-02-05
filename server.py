@@ -13,6 +13,8 @@ def handle_connection(conn):
     count = 0
     while req[-4:] != '\r\n\r\n':
         req += conn.recv(1)
+
+    # Parse the headers we've received
     req, headers = req.split('\r\n',1)
     d = {}
     for line in headers.split('\r\n')[:-2]:
