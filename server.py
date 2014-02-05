@@ -8,49 +8,6 @@ import StringIO
 import re
 import jinja2
 
-def index(conn, **kwargs):
-    loader = jinja2.FileSystemLoader('./templates')
-    env = jinja2.Environment(loader=loader)
-    template = env.get_template('index.html')
-    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n' + \
-              template.render(kwargs)
-    return  retval
-
-def file(conn, **kwargs):
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>File Page</h1>\r\n\t\t' + \
-            'Files go here, once there are any :)\r\n\t' + \
-            '</body>\r\n</html>'
-
-def content(conn, **kwargs):
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Content Page</h1>\r\n\t\t' + \
-            'Content goes here, once there is any :)\r\n\t' + \
-            '</body>\r\n</html>'
-
-def image(conn, **kwargs):
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Image Page</h1>\r\n\t\t' + \
-            'Images go here, once there are any :)\r\n\t' + \
-            '</body>\r\n</html>'
-
-def form(conn, **kwargs):
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<form action=\'/submit\' method=\'POST\'>\r\n\t\t' + \
-            '<input type=\'text\' name=\'firstname\'>\r\n\t\t' + \
-            '<input type=\'text\' name=\'lastname\'>\r\n\t\t' + \
-            '<input type=\'submit\' name=\'submit\'>\r\n\t\t' + \
-            '</form>\r\n\t' + \
-            '</body>\r\n</html>'
-
 def submit(conn, **kwargs):
     fname = ''
     lname = ''
@@ -90,15 +47,6 @@ def psubmit(conn, **kwargs):
             '</h1>\r\n\t' + \
             '</body>\r\n</html>'
 
-def fof(conn, **kwargs):
-    # Page we don't have...
-    return  'HTTP/1.0 404 Not Found\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Oops! Something went wrong...</h1>\r\n\t\t' + \
-            'We couldn\'t find that page\r\n\t' + \
-            '</body>\n</html>'
-
 def handle_get(conn, path):
     args = parse_qs(urlparse(path)[4])
     response = {'/' : 'index.html', \
@@ -110,13 +58,15 @@ def handle_get(conn, path):
              }
     loader = jinja2.FileSystemLoader('./templates')
     env = jinja2.Environment(loader=loader)
+    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n'
     try:
         path = response[urlparse(path)[2]]
     except KeyError:
+        args['path'] = path
+        retval = 'HTTP/1.0 404 Not Found\r\n'
         path = '404.html'
     template = env.get_template(path)
-    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n' + \
-              template.render(args)
+    retval += template.render(args)
     conn.send(retval)
 
 def handle_post(conn, path, **kwargs):
