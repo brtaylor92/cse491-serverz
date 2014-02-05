@@ -6,17 +6,15 @@ from urlparse import urlparse, parse_qs
 import cgi
 import StringIO
 import re
+import jinja2
 
 def index(conn, **kwargs):
-    return  'HTTP/1.0 200 OK\r\n' + \
-            'Content-type: text/html\r\n\r\n' + \
-            '<html>\r\n\t<body>\r\n\t\t' + \
-            '<h1>Hello, world.</h1>\r\n\t\t' + \
-            'This is brtaylor92\'s Web server.<br />\r\n\t\t' + \
-            '<a href=\'/content\'>Content</a><br />\r\n\t\t' + \
-            '<a href=\'/file\'>Files</a><br />\r\n\t\t' + \
-            '<a href=\'/image\'>Images</a><br />\r\n\t' + \
-            '</body>\r\n</html>'
+    loader = jinja2.FileSystemLoader('./templates')
+    env = jinja2.Environment(loader=loader)
+    template = env.get_template('index.html')
+    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n' + \
+              template.render(kwargs)
+    return  retval
 
 def file(conn, **kwargs):
     return  'HTTP/1.0 200 OK\r\n' + \
@@ -103,17 +101,23 @@ def fof(conn, **kwargs):
 
 def handle_get(conn, path):
     args = parse_qs(urlparse(path)[4])
-    response = {'/' : index, \
-              '/content' : content, \
-              '/file' : file, \
-              '/image' : image, \
-              '/form' : form, \
-              '/submit' : submit, \
+    response = {'/' : 'index.html', \
+              '/content' : 'content.html', \
+              '/file' : 'file.html', \
+              '/image' : 'image.html', \
+              '/form' : 'form.html', \
+              '/submit' : 'submit.html', \
              }
+    loader = jinja2.FileSystemLoader('./templates')
+    env = jinja2.Environment(loader=loader)
     try:
-        conn.send(response[urlparse(path)[2]](conn, **args))
+        path = response[urlparse(path)[2]]
     except KeyError:
-        conn.send(fof(conn, **args))
+        path = '404.html'
+    template = env.get_template(path)
+    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n' + \
+              template.render(args)
+    conn.send(retval)
 
 def handle_post(conn, path, **kwargs):
     response = {'/submit' : psubmit,}

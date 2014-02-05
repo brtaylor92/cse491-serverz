@@ -37,10 +37,11 @@ def test_handle_connection_slash():
                       '<a href=\'/file\'>Files</a><br />\r\n\t\t' + \
                       '<a href=\'/image\'>Images</a><br />\r\n\t' + \
                       '</body>\r\n</html>'
+    er = 'HTTP/1.0 200 OK\r\n'
 
     server.handle_connection(conn)
 
-    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+    assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_content():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
