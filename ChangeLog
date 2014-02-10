@@ -1,9 +1,7 @@
 2014-01-07  Titus Brown  <t@Titus-MacBook-Air-2.local>
+	* Initialized repository, created server.py and README.
 
- * Initialized repository, created server.py and README.
-
-2014-01-09	Ben Taylor	<taylo886@arctic.cse.msu.edu>
-	
+2014-01-09  Ben Taylor	<taylo886@arctic.cse.msu.edu>
 	*	Updated server.py to respond with 200 OK, send "Hello World" html
 
 2014-01-17  Ben Taylor  <taylo886@arctic.cse.msu.edu>
@@ -19,3 +17,9 @@
 	*	Revamp tests
 	*	Fix POST
 	*	Check and increase test coverage
+2014-02-05  Ben Taylor <taylo886@arctic.cse.msu.edu>
+	*	Fix FieldStorage
+	*	Update to work with arbitrary length requests
+	*	Refactor everything into handle_connection
+	*	Generally tidy up code
+	*	Templates with jinja2
