@@ -1,22 +1,44 @@
-# from http://docs.python.org/2/library/wsgiref.html
+import jinja2
+from urlparse import urlparse, parse_qs
+import cgi
 
-from wsgiref.util import setup_testing_defaults
+def app(environ, start_response):
+    # The dict of pages we know how to get to
+    response = {
+                '/'        : 'index.html',   \
+                '/content' : 'content.html', \
+                '/file'    : 'file.html',    \
+                '/image'   : 'image.html',   \
+                '/form'    : 'form.html',    \
+                '/submit'  : 'submit.html',  \
+               }
 
-# A relatively simple WSGI application. It's going to print out the
-# environment dictionary after being updated by setup_testing_defaults
-def simple_app(environ, start_response):
-    setup_testing_defaults(environ)
+    # Basic connection information and set up templates
+    loader = jinja2.FileSystemLoader('./templates')
+    env = jinja2.Environment(loader=loader)
+    response_headers = [('Content-type', 'text/html')]
 
-    status = '200 OK'
-    headers = [('Content-type', 'text/plain')]
+    # Check if we got a path to an existing page
+    if environ['PATH_INFO'] in response:
+        status = '200 OK'
+        template = env.get_template(response[environ['PATH_INFO']])
+    else:
+        status = '404 Not Found'
+        template = env.get_template('404.html')
 
-    start_response(status, headers)
+    # Set up template arguments
+    args = parse_qs(environ['QUERY_STRING'])
+    args['path'] = environ['PATH_INFO']
 
-    ret = ["%s: %s\n" % (key, value)
-           for key, value in environ.iteritems()]
-    ret.insert(0, "This is your environ.  Hello, world!\n\n")
+    if environ['REQUEST_METHOD'] == 'POST':
+        # Grab POST args if there are any
+        fs = cgi.FieldStorage(fp=environ['wsgi.input'], headers={'content-type':environ['CONTENT_TYPE']}, environ=environ)
+        args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
 
-    return ret
+    print args
+    # Return the page
+    start_response(status, response_headers)
+    return str(template.render(args))
 
 def make_app():
-    return simple_app
+    return app
