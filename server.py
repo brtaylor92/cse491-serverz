@@ -30,7 +30,13 @@ def handle_connection(conn):
     env['CONTENT_LENGTH'] = 0
 
     def start_response(status, response_headers):
-        pass
+        conn.send('HTTP/1.0 ')
+        conn.send(status)
+        conn.send('\r\n')
+        for pair in response_headers:
+            key, header = pair
+            conn.send(key + ': ' + header + '\r\n')
+        conn.send('\r\n')
     
     content = ''
     if req.startswith('POST '):
