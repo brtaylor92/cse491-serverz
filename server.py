@@ -47,8 +47,10 @@ def handle_connection(conn):
             content += conn.recv(1)
 
     env['wsgi.input'] = StringIO(content)
-    result = make_app()
-    conn.send(result(env, start_response))
+    appl = make_app()
+    result = appl(env, start_response)
+    for data in result:
+        conn.send(data)
     conn.close()
     
 

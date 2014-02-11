@@ -42,7 +42,7 @@ def app(environ, start_response):
 
     # Return the page
     start_response(status, response_headers)
-    return str(template.render(args))
+    return [str(template.render(args))]
 
 def make_app():
     return app
