@@ -43,6 +43,7 @@ def handle_connection(conn):
         env['REQUEST_METHOD'] = 'POST'
         env['CONTENT_LENGTH'] = headers['content-length']
         env['CONTENT_TYPE'] = headers['content-type']
+        print headers['content-length']
         while len(content) < int(headers['content-length']):
             content += conn.recv(1)
 
