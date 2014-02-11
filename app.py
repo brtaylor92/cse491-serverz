@@ -1,5 +1,5 @@
 import jinja2
-from urlparse import urlparse, parse_qs
+from urlparse import parse_qs
 import cgi
 
 def app(environ, start_response):

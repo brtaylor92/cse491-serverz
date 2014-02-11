@@ -2,13 +2,15 @@
 import random
 import socket
 import time
+from urlparse import urlparse
 from StringIO import StringIO
-from ref_app import make_app
+from app import make_app
 
 def handle_connection(conn):
     # Start reading in data from the connection
     req = conn.recv(1)
     count = 0
+    env = {}
     while req[-4:] != '\r\n\r\n':
         req += conn.recv(1)
 
@@ -21,14 +23,27 @@ def handle_connection(conn):
 
     # Parse out the path and related info
     path = urlparse(req.split(' ', 3)[1])
+    env['REQUEST_METHOD'] = 'GET'
+    env['PATH_INFO'] = path[2]
+    env['QUERY_STRING'] = path[4]
+    env['CONTENT_TYPE'] = 'text/html'
+    env['CONTENT_LENGTH'] = 0
 
-    # Check if the request is get or post, set up the args
-    # args = parse_qs(path[4])
+    def start_response(status, response_headers):
+        pass
     
-
+    content = ''
     if req.startswith('POST '):
+        env['REQUEST_METHOD'] = 'POST'
+        env['CONTENT_LENGTH'] = headers['content-length']
+        env['CONTENT_TYPE'] = headers['content-type']
         while len(content) < int(headers['content-length']):
             content += conn.recv(1)
+
+    env['wsgi.input'] = StringIO(content)
+    result = make_app()
+    conn.send(result(env, start_response))
+    conn.close()
     
 
 def main():
