@@ -2,9 +2,8 @@
 import random
 import socket
 import time
-import cgi
 from StringIO import StringIO
-
+from ref_app import make_app
 
 def handle_connection(conn):
     # Start reading in data from the connection
@@ -25,13 +24,12 @@ def handle_connection(conn):
 
     # Check if the request is get or post, set up the args
     # args = parse_qs(path[4])
-    # args = parse_qs(environ['QUERY_STRING'])
+    
 
     if req.startswith('POST '):
         while len(content) < int(headers['content-length']):
             content += conn.recv(1)
-    fs = cgi.FieldStorage(fp=StringIO(content), headers=headers, environ={'REQUEST_METHOD' : 'POST'})
-    args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
+    
 
 def main():
     s = socket.socket()         # Create a socket object

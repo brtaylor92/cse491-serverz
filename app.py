@@ -30,12 +30,16 @@ def app(environ, start_response):
     args = parse_qs(environ['QUERY_STRING'])
     args['path'] = environ['PATH_INFO']
 
+    # Grab POST args if there are any
     if environ['REQUEST_METHOD'] == 'POST':
-        # Grab POST args if there are any
-        fs = cgi.FieldStorage(fp=environ['wsgi.input'], headers={'content-type':environ['CONTENT_TYPE']}, environ=environ)
-        args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
+        headers = {k[5:].lower().replace('_','-') : v \
+                    for k,v in environ.iteritems() if(k.startswith('HTTP'))}
+        headers['content-type'] = environ['CONTENT_TYPE']
+        headers['content-length'] = environ['CONTENT_LENGTH']
+        fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
+                                headers=headers, environ=environ)
+        args.update({x: [fs[x].value] for x in fs.keys()})
 
-    print args
     # Return the page
     start_response(status, response_headers)
     return str(template.render(args))
