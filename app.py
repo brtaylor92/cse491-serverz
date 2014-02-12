@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import jinja2
 from urlparse import parse_qs
 import cgi
@@ -27,7 +29,8 @@ def app(environ, start_response):
         template = env.get_template('404.html')
 
     # Set up template arguments
-    args = parse_qs(environ['QUERY_STRING'])
+    x = parse_qs(environ['QUERY_STRING']).iteritems()
+    args = {k : v[0] for k,v in x}
     args['path'] = environ['PATH_INFO']
 
     # Grab POST args if there are any
@@ -38,11 +41,13 @@ def app(environ, start_response):
         headers['content-length'] = environ['CONTENT_LENGTH']
         fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
                                 headers=headers, environ=environ)
-        args.update({x: [fs[x].value] for x in fs.keys()})
+        args.update({x : fs[x].value for x in fs.keys()})
 
+    args = {unicode(k, "utf-8") : unicode(v, "utf-8") for k,v in args.iteritems()}
+    print args
     # Return the page
     start_response(status, response_headers)
-    return [template.render(args).encode('latin-1', 'replace')]
+    return [bytes(template.render(args))]
 
 def make_app():
     return app
