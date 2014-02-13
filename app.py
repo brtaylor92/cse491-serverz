@@ -22,7 +22,7 @@ def app(environ, start_response):
     # Basic connection information and set up templates
     loader = jinja2.FileSystemLoader('./templates')
     env = jinja2.Environment(loader=loader)
-    response_headers = [('Content-type', 'text/html')]
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
 
     # Check if we got a path to an existing page
     if environ['PATH_INFO'] in response:
@@ -56,14 +56,21 @@ def app(environ, start_response):
         # Add these new args to the existing set
         args.update({x : fs[x].value for x in fs.keys()})
 
+    uargs = {}
     # Decode and (re)encode special characters into a consistent format
-    args = {k : v.decode('cp1252').encode('ascii', 'xmlcharrefreplace') \
-            for k,v in args.iteritems()}
-    
+    #args = {k.decode('utf-8') : v.decode('cp1252') \
+    #        for k,v in args.iteritems()}
+    print args
+    for k, v in args.iteritems():
+        uargs[k.decode('utf-8')] = unicode(v, 'utf-8')
+    print uargs
     # Return the page and status code
     # Page is first converted to bytes from unicode for compatibility
     start_response(status, response_headers)
-    return [bytes(template.render(args))]
+    #x = template.render(args)
+    template.render(args)
+    #return [template.render(args).encode('utf-8')]
+    return ['Hello World']
 
 def make_app():
     """Wrapper function; returns the app function above to a WSGI server"""
