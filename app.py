@@ -16,7 +16,7 @@ def app(environ, start_response):
                 '/image'   : 'image.html',   \
                 '/form'    : 'form.html',    \
                 '/submit'  : 'submit.html',  \
-                '404'     : '404.html',      \
+                '404'      : '404.html',      \
                }
 
     # Basic connection information and set up templates
