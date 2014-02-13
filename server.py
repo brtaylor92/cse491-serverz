@@ -7,6 +7,9 @@ from StringIO import StringIO
 from app import make_app
 
 def handle_connection(conn):
+    """Takes a socket connection, and serves a WSGI app over it.
+        Connection is closed when app is served."""
+    
     # Start reading in data from the connection
     req = conn.recv(1)
     count = 0
@@ -21,49 +24,73 @@ def handle_connection(conn):
         k, v = line.split(': ', 1)
         headers[k.lower()] = v
 
-    # Parse out the path and related info
-    path = urlparse(req.split(' ', 3)[1])
+    # Parse the path and related env info
+    info = urlparse(req.split(' ', 3)[1])
     env['REQUEST_METHOD'] = 'GET'
-    env['PATH_INFO'] = path[2]
-    env['QUERY_STRING'] = path[4]
+    env['PATH_INFO'] = info[2]
+    env['QUERY_STRING'] = info[4]
     env['CONTENT_TYPE'] = 'text/html'
     env['CONTENT_LENGTH'] = 0
 
+    # Start response function for WSGI interface
     def start_response(status, response_headers):
+        """Send the initial HTTP header, with status code 
+            and any other provided headers"""
+        
+        # Send HTTP status
         conn.send('HTTP/1.0 ')
         conn.send(status)
         conn.send('\r\n')
+
+        # Send the response headers
         for pair in response_headers:
             key, header = pair
             conn.send(key + ': ' + header + '\r\n')
         conn.send('\r\n')
     
+    # If we received a POST request, collect the rest of the data
     content = ''
     if req.startswith('POST '):
+        # Set up extra env variables
         env['REQUEST_METHOD'] = 'POST'
         env['CONTENT_LENGTH'] = headers['content-length']
         env['CONTENT_TYPE'] = headers['content-type']
+        # Continue receiving content up to content-length
         while len(content) < int(headers['content-length']):
             content += conn.recv(1)
     
+    # Set up a StringIO to mimic stdin for the FieldStorage in the app
     env['wsgi.input'] = StringIO(content)
+    
+    # Get the application
     appl = make_app()
     result = appl(env, start_response)
+
+    # Serve the processed data
     for data in result:
         conn.send(data)
+
+    # Close the connection; we're done here
     conn.close()
     
 
 def main():
-    s = socket.socket()         # Create a socket object
-    host = socket.getfqdn() # Get local machine name
+    """Waits for a connection, then serves a WSGI app using handle_connection"""
+    # Create a socket object
+    s = socket.socket()
+    
+    # Get local machine name (fully qualified domain name)
+    host = socket.getfqdn()
+
+    # Bind to a (random) port
     port = random.randint(8000, 9999)
-    s.bind((host, port))        # Bind to the port
+    s.bind((host, port))
 
     print 'Starting server on', host, port
     print 'The Web server URL for this would be http://%s:%d/' % (host, port)
 
-    s.listen(5)                 # Now wait for client connection.
+    # Now wait for client connection.
+    s.listen(5)
 
     print 'Entering infinite loop; hit CTRL-C to exit'
     while True:
