@@ -21,14 +21,14 @@ def handle_connection(conn):
     req, data = req.split('\r\n',1)
     headers = {}
     for line in data.split('\r\n')[:-2]:
-        k, v = line.split(': ', 1)
-        headers[k.lower()] = v
+        key, val = line.split(': ', 1)
+        headers[key.lower()] = val
 
     # Parse the path and related env info
-    info = urlparse(req.split(' ', 3)[1])
+    urlInfo = urlparse(req.split(' ', 3)[1])
     env['REQUEST_METHOD'] = 'GET'
-    env['PATH_INFO'] = info[2]
-    env['QUERY_STRING'] = info[4]
+    env['PATH_INFO'] = urlInfo[2]
+    env['QUERY_STRING'] = urlInfo[4]
     env['CONTENT_TYPE'] = 'text/html'
     env['CONTENT_LENGTH'] = 0
 
@@ -77,27 +77,27 @@ def handle_connection(conn):
 def main():
     """Waits for a connection, then serves a WSGI app using handle_connection"""
     # Create a socket object
-    s = socket.socket()
+    sock = socket.socket()
     
     # Get local machine name (fully qualified domain name)
     host = socket.getfqdn()
 
     # Bind to a (random) port
     port = random.randint(8000, 9999)
-    s.bind((host, port))
+    sock.bind((host, port))
 
     print 'Starting server on', host, port
     print 'The Web server URL for this would be http://%s:%d/' % (host, port)
 
     # Now wait for client connection.
-    s.listen(5)
+    sock.listen(5)
 
     print 'Entering infinite loop; hit CTRL-C to exit'
     while True:
         # Establish connection with client.    
-        c, (client_host, client_port) = s.accept()
+        conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(c)
+        handle_connection(conn)
         
 # boilerplate
 if __name__ == "__main__":

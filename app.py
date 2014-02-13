@@ -16,7 +16,7 @@ def app(environ, start_response):
                 '/image'   : 'image.html',   \
                 '/form'    : 'form.html',    \
                 '/submit'  : 'submit.html',  \
-                '404'     : '404.html'
+                '404'     : '404.html',      \
                }
 
     # Basic connection information and set up templates
@@ -37,7 +37,7 @@ def app(environ, start_response):
     # Set up template arguments from GET requests
     qs = parse_qs(environ['QUERY_STRING']).iteritems()
     # Flatten the list we get from parse_qs; just assume we want the 0th for now
-    args = {k : v[0] for k,v in qs}
+    args = {key : val[0] for key, val in qs}
     # Add the path to the args; we'll use this for page titles and 404s
     args['path'] = environ['PATH_INFO']
 
@@ -45,8 +45,11 @@ def app(environ, start_response):
     if environ['REQUEST_METHOD'] == 'POST':
         # Re-parse the headers into a format field storage can use
         # Dashes instead of underscores, all lowercased
-        headers = {k[5:].lower().replace('_','-') : v \
-                    for k,v in environ.iteritems() if(k.startswith('HTTP'))}
+        headers = { 
+                    key[5:].lower().replace('_','-') : val \
+                    for key, val in environ.iteritems() \
+                    if(key.startswith('HTTP'))
+                  }
         # Pull in the non-HTTP variables that field storage needs manually
         headers['content-type'] = environ['CONTENT_TYPE']
         headers['content-length'] = environ['CONTENT_LENGTH']
@@ -54,10 +57,13 @@ def app(environ, start_response):
         fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
                                 headers=headers, environ=environ)
         # Add these new args to the existing set
-        args.update({k : fs[k].value for k in fs.keys()})
+        args.update({key : fs[key].value for key in fs.keys()})
 
     # Get all the arguments in unicode form for Jinja
-    args = {k.decode('utf-8') : unicode(v, 'utf-8') for k,v in args.iteritems()}
+    args = {
+            key.decode('utf-8') : val.decode('utf-8') \
+            for key, val in args.iteritems()
+           }
     
     # Return the page and status code
     # Page is first encoded to bytes from unicode for compatibility
