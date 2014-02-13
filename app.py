@@ -44,18 +44,12 @@ def app(environ, start_response):
                                 headers=headers, environ=environ)
         args.update({x : fs[x].value for x in fs.keys()})
 
-    # args = {unicode(k, "utf-8") : unicode(v, "utf-8") for k,v in args.iteritems()}
-    uargs = {}
-    for k,v in args.iteritems():
-        try:
-            x = unicode(v, 'utf-8')
-        except UnicodeDecodeError:
-            x = v.decode('cp1252')
-        uargs[unicode(k, 'utf-8')] = unicode(x.encode('ascii', 'xmlcharrefreplace'), 'utf-8')
+    args = {k : v.decode('cp1252').encode('ascii', 'xmlcharrefreplace') \
+            for k,v in args.iteritems()}
     
     # Return the page
     start_response(status, response_headers)
-    return [bytes(template.render(uargs))]
+    return [bytes(template.render(args))]
 
 def make_app():
     return app
