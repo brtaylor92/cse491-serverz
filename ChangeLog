@@ -23,3 +23,6 @@
 	*	Refactor everything into handle_connection
 	*	Generally tidy up code
 	*	Templates with jinja2
+2014-02-13	Ben Taylor <taylo886@arctic.cse.msu.edu>
+	*	Update to work with unicode
+	*	Make app and server separate, wsgi compliant

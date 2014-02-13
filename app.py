@@ -56,7 +56,7 @@ def app(environ, start_response):
         # Add these new args to the existing set
         args.update({x : fs[x].value for x in fs.keys()})
 
-    # Decode and (re)encode special characters into a consistent format
+    # Get all the arguments in unicode form for Jinja
     args = {k.decode('utf-8') : unicode(v, 'utf-8') for k,v in args.iteritems()}
     
     # Return the page and status code
