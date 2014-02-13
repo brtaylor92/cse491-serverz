@@ -2,6 +2,7 @@
 
 import jinja2
 from urlparse import parse_qs
+from urllib import unquote
 import cgi
 
 def app(environ, start_response):
@@ -43,11 +44,18 @@ def app(environ, start_response):
                                 headers=headers, environ=environ)
         args.update({x : fs[x].value for x in fs.keys()})
 
-    args = {unicode(k, "utf-8") : unicode(v, "utf-8") for k,v in args.iteritems()}
-    print args
+    # args = {unicode(k, "utf-8") : unicode(v, "utf-8") for k,v in args.iteritems()}
+    uargs = {}
+    for k,v in args.iteritems():
+        try:
+            x = unicode(v, 'utf-8')
+        except UnicodeDecodeError:
+            x = v.decode('cp1252')
+        uargs[unicode(k, 'utf-8')] = unicode(x.encode('ascii', 'xmlcharrefreplace'), 'utf-8')
+    
     # Return the page
     start_response(status, response_headers)
-    return [bytes(template.render(args))]
+    return [bytes(template.render(uargs))]
 
 def make_app():
     return app
