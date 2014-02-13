@@ -16,7 +16,7 @@ def app(environ, start_response):
                 '/image'   : 'image.html',   \
                 '/form'    : 'form.html',    \
                 '/submit'  : 'submit.html',  \
-                '/404'     : '404.html'
+                '404'     : '404.html'
                }
 
     # Basic connection information and set up templates
@@ -32,7 +32,7 @@ def app(environ, start_response):
     else:
         # If we did not, redirect to the 404 page, with appropriate status
         status = '404 Not Found'
-        template = env.get_template(response['/404'])
+        template = env.get_template(response['404'])
 
     # Set up template arguments from GET requests
     x = parse_qs(environ['QUERY_STRING']).iteritems()
@@ -56,21 +56,13 @@ def app(environ, start_response):
         # Add these new args to the existing set
         args.update({x : fs[x].value for x in fs.keys()})
 
-    uargs = {}
     # Decode and (re)encode special characters into a consistent format
-    #args = {k.decode('utf-8') : v.decode('cp1252') \
-    #        for k,v in args.iteritems()}
-    print args
-    for k, v in args.iteritems():
-        uargs[k.decode('utf-8')] = unicode(v, 'utf-8')
-    print uargs
+    args = {k.decode('utf-8') : unicode(v, 'utf-8') for k,v in args.iteritems()}
+    
     # Return the page and status code
-    # Page is first converted to bytes from unicode for compatibility
+    # Page is first encoded to bytes from unicode for compatibility
     start_response(status, response_headers)
-    #x = template.render(args)
-    template.render(args)
-    #return [template.render(args).encode('utf-8')]
-    return ['Hello World']
+    return [template.render(args).encode('utf-8')]
 
 def make_app():
     """Wrapper function; returns the app function above to a WSGI server"""
