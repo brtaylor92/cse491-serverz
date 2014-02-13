@@ -35,9 +35,9 @@ def app(environ, start_response):
         template = env.get_template(response['404'])
 
     # Set up template arguments from GET requests
-    x = parse_qs(environ['QUERY_STRING']).iteritems()
+    qs = parse_qs(environ['QUERY_STRING']).iteritems()
     # Flatten the list we get from parse_qs; just assume we want the 0th for now
-    args = {k : v[0] for k,v in x}
+    args = {k : v[0] for k,v in qs}
     # Add the path to the args; we'll use this for page titles and 404s
     args['path'] = environ['PATH_INFO']
 
@@ -54,7 +54,7 @@ def app(environ, start_response):
         fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
                                 headers=headers, environ=environ)
         # Add these new args to the existing set
-        args.update({x : fs[x].value for x in fs.keys()})
+        args.update({k : fs[k].value for k in fs.keys()})
 
     # Get all the arguments in unicode form for Jinja
     args = {k.decode('utf-8') : unicode(v, 'utf-8') for k,v in args.iteritems()}
