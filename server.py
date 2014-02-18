@@ -31,6 +31,7 @@ def handle_connection(conn):
     env['QUERY_STRING'] = urlInfo[4]
     env['CONTENT_TYPE'] = 'text/html'
     env['CONTENT_LENGTH'] = 0
+    env['SCRIPT_NAME'] = ''
 
     # Start response function for WSGI interface
     def start_response(status, response_headers):
@@ -63,8 +64,8 @@ def handle_connection(conn):
     env['wsgi.input'] = StringIO(content)
     
     # Get the application
-    appl = make_app()
-    result = appl(env, start_response)
+    wsgi_app = make_app()
+    result = wsgi_app(env, start_response)
 
     # Serve the processed data
     for data in result:
