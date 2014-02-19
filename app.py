@@ -3,6 +3,87 @@
 import jinja2
 from urlparse import parse_qs
 import cgi
+from os import listdir
+from random import choice
+
+# Helper functions
+def fileData(fname):
+    fp = open(fname, 'rb')
+    data = [fp.read()]
+    fp.close()
+    return data
+
+
+def index(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+    
+    template = env.get_template('index.html')
+    data = [template.render(kwargs).encode('utf-8')]
+    
+    return (response_headers, data)
+
+def content(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+    
+    template = env.get_template('content.html')
+    data = [template.render(kwargs).encode('utf-8')]
+    
+    return (response_headers, data)
+
+def serveImage(env, **kwargs):
+    # Set our response headers to indicate an image
+    response_headers = [('Content-type', 'image/jpeg')]
+
+    # Load a random image from the images dir, and serve it
+    data = fileData(kwargs['path'][1:])
+
+    return (response_headers, data)
+
+def serveFile(env, **kwargs):
+    # Set our response headers to indicate plaintext
+    response_headers = [('Content-type', 'text/plain; charset="UTF-8"')]
+
+    # Load a random image from the images dir, and serve it
+    data = fileData(kwargs['path'][1:])
+
+    return (response_headers, data)
+
+def File(env, **kwargs):
+    # Load a random file from the files dir, and serve it
+    kwargs['path'] = '/files/'+choice(listdir('files'))
+    return serveFile(env, **kwargs)
+
+def Image(env, **kwargs):
+    # Load a random image from the images dir, and serve it
+    kwargs['path'] = '/images/'+choice(listdir('images'))
+    return serveFile(env, **kwargs)
+
+def form(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+
+    template = env.get_template('form.html')
+    data = [template.render(kwargs).encode('utf-8')]
+
+    return (response_headers, data)
+
+def submit(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+    
+    template = env.get_template('submit.html')
+    data = [template.render(kwargs).encode('utf-8')]
+    
+    return (response_headers, data)
+
+def fail(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+
+    # Select an amusing image to acompany
+    kwargs['img'] = './404/'+choice(listdir('404'))
+    
+    template = env.get_template('404.html')
+    data = [template.render(kwargs).encode('utf-8')]
+    
+    return (response_headers, data)
 
 def app(environ, start_response):
     """A simple WSGI application which serves several pages 
@@ -10,29 +91,26 @@ def app(environ, start_response):
 
     # The dict of pages we know how to serve, and their corresponding templates
     response = {
-                '/'        : 'index.html',   \
-                '/content' : 'content.html', \
-                '/file'    : 'file.html',    \
-                '/image'   : 'image.html',   \
-                '/form'    : 'form.html',    \
-                '/submit'  : 'submit.html',  \
-                '404'     : '404.html',      \
+                '/'        : index,      \
+                '/content' : content,    \
+                '/file'    : File,  \
+                '/image'   : Image, \
+                '/form'    : form,       \
+                '/submit'  : submit,     \
+                '404'      : fail,       \
                }
+
+    # Manually add all other available pages/images
+    for page in listdir('404'):
+        response['/404/' + page] = serveImage
+    for page in listdir('images'):
+        response['/images/' + page] = serveImage
+    for page in listdir('files'):
+        response['/files/' + page] = serveFile
 
     # Basic connection information and set up templates
     loader = jinja2.FileSystemLoader('./templates')
     env = jinja2.Environment(loader=loader)
-    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
-
-    # Check if we got a path to an existing page
-    if environ['PATH_INFO'] in response:
-        # If we have that page, serve it with a 200 OK
-        status = '200 OK'
-        template = env.get_template(response[environ['PATH_INFO']])
-    else:
-        # If we did not, redirect to the 404 page, with appropriate status
-        status = '404 Not Found'
-        template = env.get_template(response['404'])
 
     # Set up template arguments from GET requests
     qs = parse_qs(environ['QUERY_STRING']).iteritems()
@@ -65,10 +143,24 @@ def app(environ, start_response):
             for key, val in args.iteritems()
            }
     
+    # Check if we got a path to an existing page
+    if environ['PATH_INFO'] in response:
+        # If we have that page, serve it with a 200 OK
+        status = '200 OK'
+        path = environ['PATH_INFO']
+        
+    else:
+        # If we did not, redirect to the 404 page, with appropriate status
+        status = '404 Not Found'
+        path = '404'
+
+    args['path'] = path
+    response_headers, data = response[path](env, **args)
+
     # Return the page and status code
     # Page is first encoded to bytes from unicode for compatibility
     start_response(status, response_headers)
-    return [template.render(args).encode('utf-8')]
+    return data
 
 def make_app():
     """Wrapper function; returns the app function above to a WSGI server"""
