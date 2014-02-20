@@ -5,6 +5,7 @@ from urlparse import parse_qs
 import cgi
 from os import listdir
 from random import choice
+from StringIO import StringIO
 
 # Helper functions
 def fileData(fname):
@@ -125,13 +126,20 @@ def app(environ, start_response):
         # Dashes instead of underscores, all lowercased
         headers = { 
                     key[5:].lower().replace('_','-') : val \
-                    for key, val in environ.iteritems() \
+                    for key, val in environ.iteritems()    \
                     if(key.startswith('HTTP'))
                   }
         # Pull in the non-HTTP variables that field storage needs manually
         headers['content-type'] = environ['CONTENT_TYPE']
         headers['content-length'] = environ['CONTENT_LENGTH']
         # Create a field storage to process POST args
+
+        ## Bad hack to get around validator problem
+        if "multipart/form-data" in environ['CONTENT_TYPE']:
+            cLen = int(environ['CONTENT_LENGTH'])
+            data = environ['wsgi.input'].read(cLen)
+            environ['wsgi.input'] = StringIO(data)
+
         fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
                                 headers=headers, environ=environ)
         # Add these new args to the existing set
