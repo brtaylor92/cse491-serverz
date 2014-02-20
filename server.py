@@ -57,7 +57,8 @@ def handle_connection(conn):
         env['CONTENT_LENGTH'] = headers['content-length']
         env['CONTENT_TYPE'] = headers['content-type']
         # Continue receiving content up to content-length
-        while len(content) < int(headers['content-length']):
+        cLen = int(headers['content-length'])
+        while len(content) < cLen:
             content += conn.recv(1)
     
     # Set up a StringIO to mimic stdin for the FieldStorage in the app
