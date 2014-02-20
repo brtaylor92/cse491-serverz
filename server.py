@@ -5,8 +5,10 @@ import time
 from urlparse import urlparse
 from StringIO import StringIO
 from app import make_app
+from wsgiref.validate import validator
+from sys import stderr
 
-def handle_connection(conn):
+def handle_connection(conn, port):
     """Takes a socket connection, and serves a WSGI app over it.
         Connection is closed when app is served."""
     
@@ -15,7 +17,11 @@ def handle_connection(conn):
     count = 0
     env = {}
     while req[-4:] != '\r\n\r\n':
-        req += conn.recv(1)
+        new = conn.recv(1)
+        if new == '':
+            return
+        else:
+            req += new
 
     # Parse the headers we've received
     req, data = req.split('\r\n',1)
@@ -30,8 +36,16 @@ def handle_connection(conn):
     env['PATH_INFO'] = urlInfo[2]
     env['QUERY_STRING'] = urlInfo[4]
     env['CONTENT_TYPE'] = 'text/html'
-    env['CONTENT_LENGTH'] = 0
+    env['CONTENT_LENGTH'] = str(0)
     env['SCRIPT_NAME'] = ''
+    env['SERVER_NAME'] = socket.getfqdn()
+    env['SERVER_PORT'] = str(port)
+    env['wsgi.version'] = (1, 0)
+    env['wsgi.errors'] = stderr
+    env['wsgi.multithread']  = False
+    env['wsgi.multiprocess'] = False
+    env['wsgi.run_once']     = False
+    env['wsgi.url_scheme'] = 'http'
 
     # Start response function for WSGI interface
     def start_response(status, response_headers):
@@ -54,18 +68,23 @@ def handle_connection(conn):
     if req.startswith('POST '):
         # Set up extra env variables
         env['REQUEST_METHOD'] = 'POST'
-        env['CONTENT_LENGTH'] = headers['content-length']
+        env['CONTENT_LENGTH'] = str(headers['content-length'])
         env['CONTENT_TYPE'] = headers['content-type']
         # Continue receiving content up to content-length
         cLen = int(headers['content-length'])
         while len(content) < cLen:
             content += conn.recv(1)
-    
+        
     # Set up a StringIO to mimic stdin for the FieldStorage in the app
     env['wsgi.input'] = StringIO(content)
     
     # Get the application
     wsgi_app = make_app()
+    
+    ## VALIDATION ##
+    wsgi_app = validator(wsgi_app)
+    ## VALIDATION ##
+
     result = wsgi_app(env, start_response)
 
     # Serve the processed data
@@ -74,7 +93,6 @@ def handle_connection(conn):
 
     # Close the connection; we're done here
     conn.close()
-    
 
 def main():
     """Waits for a connection, then serves a WSGI app using handle_connection"""
@@ -99,7 +117,7 @@ def main():
         # Establish connection with client.    
         conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(conn)
+        handle_connection(conn, client_port)
         
 # boilerplate
 if __name__ == "__main__":
