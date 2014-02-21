@@ -2,15 +2,18 @@
 import random
 import socket
 import time
-from urlparse import urlparse, parse_qs
-import cgi
+from urlparse import urlparse
 from StringIO import StringIO
-import jinja2
+from app import make_app
 
 def handle_connection(conn):
+    """Takes a socket connection, and serves a WSGI app over it.
+        Connection is closed when app is served."""
+    
     # Start reading in data from the connection
     req = conn.recv(1)
     count = 0
+    env = {}
     while req[-4:] != '\r\n\r\n':
         req += conn.recv(1)
 
@@ -18,68 +21,83 @@ def handle_connection(conn):
     req, data = req.split('\r\n',1)
     headers = {}
     for line in data.split('\r\n')[:-2]:
-        k, v = line.split(': ', 1)
-        headers[k.lower()] = v
+        key, val = line.split(': ', 1)
+        headers[key.lower()] = val
 
-    # Parse out the path and related info
-    path = urlparse(req.split(' ', 3)[1])
+    # Parse the path and related env info
+    urlInfo = urlparse(req.split(' ', 3)[1])
+    env['REQUEST_METHOD'] = 'GET'
+    env['PATH_INFO'] = urlInfo[2]
+    env['QUERY_STRING'] = urlInfo[4]
+    env['CONTENT_TYPE'] = 'text/html'
+    env['CONTENT_LENGTH'] = 0
 
-    # The dict of pages we know how to get to
-    response = {
-                '/'        : 'index.html',   \
-                '/content' : 'content.html', \
-                '/file'    : 'file.html',    \
-                '/image'   : 'image.html',   \
-                '/form'    : 'form.html',    \
-                '/submit'  : 'submit.html',  \
-               }
+    # Start response function for WSGI interface
+    def start_response(status, response_headers):
+        """Send the initial HTTP header, with status code 
+            and any other provided headers"""
+        
+        # Send HTTP status
+        conn.send('HTTP/1.0 ')
+        conn.send(status)
+        conn.send('\r\n')
 
-    # Basic connection information and set up templates
-    loader = jinja2.FileSystemLoader('./templates')
-    env = jinja2.Environment(loader=loader)
-    retval = 'HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n'
+        # Send the response headers
+        for pair in response_headers:
+            key, header = pair
+            conn.send(key + ': ' + header + '\r\n')
+        conn.send('\r\n')
+    
+    # If we received a POST request, collect the rest of the data
     content = ''
-
-    # Check if the request is get or post, set up the args
-    args = parse_qs(path[4])
     if req.startswith('POST '):
+        # Set up extra env variables
+        env['REQUEST_METHOD'] = 'POST'
+        env['CONTENT_LENGTH'] = headers['content-length']
+        env['CONTENT_TYPE'] = headers['content-type']
+        # Continue receiving content up to content-length
         while len(content) < int(headers['content-length']):
             content += conn.recv(1)
-    fs = cgi.FieldStorage(fp=StringIO(content), headers=headers, environ={'REQUEST_METHOD' : 'POST'})
-    args.update(dict([(x, [fs[x].value]) for x in fs.keys()]))
+    
+    # Set up a StringIO to mimic stdin for the FieldStorage in the app
+    env['wsgi.input'] = StringIO(content)
+    
+    # Get the application
+    appl = make_app()
+    result = appl(env, start_response)
 
-    # Check if we got a path to an existing page
-    if path[2] in response:
-        template = env.get_template(response[path[2]])
-    else:
-        args['path'] = path[2]
-        retval = 'HTTP/1.0 404 Not Found\r\n\r\n'
-        template = env.get_template('404.html')
+    # Serve the processed data
+    for data in result:
+        conn.send(data)
 
-    # Render the page
-    retval += template.render(args)
-    conn.send(retval)
-
-    # Done here
+    # Close the connection; we're done here
     conn.close()
+    
 
 def main():
-    s = socket.socket()         # Create a socket object
-    host = socket.getfqdn() # Get local machine name
+    """Waits for a connection, then serves a WSGI app using handle_connection"""
+    # Create a socket object
+    sock = socket.socket()
+    
+    # Get local machine name (fully qualified domain name)
+    host = socket.getfqdn()
+
+    # Bind to a (random) port
     port = random.randint(8000, 9999)
-    s.bind((host, port))        # Bind to the port
+    sock.bind((host, port))
 
     print 'Starting server on', host, port
     print 'The Web server URL for this would be http://%s:%d/' % (host, port)
 
-    s.listen(5)                 # Now wait for client connection.
+    # Now wait for client connection.
+    sock.listen(5)
 
     print 'Entering infinite loop; hit CTRL-C to exit'
     while True:
         # Establish connection with client.    
-        c, (client_host, client_port) = s.accept()
+        conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(c)
+        handle_connection(conn)
         
 # boilerplate
 if __name__ == "__main__":
