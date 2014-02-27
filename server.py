@@ -4,14 +4,24 @@ import socket
 import time
 from urlparse import urlparse
 from StringIO import StringIO
-from app import make_app
 from wsgiref.validate import validator
 from sys import stderr
 
+## My app.py
+# from app import make_app
+##
+
 ## Quixhote
+# import quixote
+# from quixote.demo.altdemo import create_publisher
+# p = create_publisher()
+##
+
+## Image app
 import quixote
-from quixote.demo.altdemo import create_publisher
-p = create_publisher()
+import imageapp
+imageapp.setup()
+p = imageapp.create_publisher()
 ##
 
 def handle_connection(conn, port):
@@ -91,6 +101,10 @@ def handle_connection(conn, port):
     ## 
     
     ## Quixote alt.demo
+    # wsgi_app = quixote.get_wsgi_app()
+    ##
+
+    ## Imageapp
     wsgi_app = quixote.get_wsgi_app()
     ##
 
