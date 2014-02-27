@@ -12,16 +12,16 @@ from app import make_app
 ##
 
 ## Quixhote
-# import quixote
-# from quixote.demo.altdemo import create_publisher
-# p = create_publisher()
+#import quixote
+#from quixote.demo.altdemo import create_publisher
+#p = create_publisher()
 ##
 
 ## Image app
-# import quixote
-# import imageapp
-# imageapp.setup()
-# p = imageapp.create_publisher()
+#import quixote
+#import imageapp
+#imageapp.setup()
+#p = imageapp.create_publisher()
 ##
 
 def handle_connection(conn, port):
@@ -102,11 +102,11 @@ def handle_connection(conn, port):
     ## 
     
     ## Quixote alt.demo
-    # wsgi_app = quixote.get_wsgi_app()
+    #wsgi_app = quixote.get_wsgi_app()
     ##
 
     ## Imageapp
-    # wsgi_app = quixote.get_wsgi_app()
+    #wsgi_app = quixote.get_wsgi_app()
     ##
 
     ## VALIDATION ##
@@ -146,7 +146,7 @@ def main():
         # Establish connection with client.    
         conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(conn, client_port)
+        handle_connection(conn, port)
         
 # boilerplate
 if __name__ == "__main__":
