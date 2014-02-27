@@ -8,7 +8,7 @@ from wsgiref.validate import validator
 from sys import stderr
 
 ## My app.py
-# from app import make_app
+from app import make_app
 ##
 
 ## Quixhote
@@ -18,10 +18,10 @@ from sys import stderr
 ##
 
 ## Image app
-import quixote
-import imageapp
-imageapp.setup()
-p = imageapp.create_publisher()
+# import quixote
+# import imageapp
+# imageapp.setup()
+# p = imageapp.create_publisher()
 ##
 
 def handle_connection(conn, port):
@@ -95,9 +95,10 @@ def handle_connection(conn, port):
     # Set up a StringIO to mimic stdin for the FieldStorage in the app
     env['wsgi.input'] = StringIO(content)
     
-    ## My app.py
     # Get the application
-    # wsgi_app = make_app()
+
+    ## My app.py
+    wsgi_app = make_app()
     ## 
     
     ## Quixote alt.demo
@@ -105,7 +106,7 @@ def handle_connection(conn, port):
     ##
 
     ## Imageapp
-    wsgi_app = quixote.get_wsgi_app()
+    # wsgi_app = quixote.get_wsgi_app()
     ##
 
     ## VALIDATION ##
