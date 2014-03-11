@@ -120,6 +120,7 @@ def handle_connection(conn, port):
         conn.send(data)
 
     # Close the connection; we're done here
+    result.close()
     conn.close()
 
 def main():
