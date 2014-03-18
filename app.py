@@ -31,6 +31,16 @@ def content(env, **kwargs):
     
     return (response_headers, data)
 
+def listImage(env, **kwargs):
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
+
+    kwargs['images'] = listdir('images')
+    print(kwargs['images'])
+    template = env.get_template('imagelist.html')
+    data = [template.render(kwargs).encode('utf-8')]
+
+    return (response_headers, data)
+
 def serveImage(env, **kwargs):
     # Set our response headers to indicate an image
     response_headers = [('Content-type', 'image/jpeg')]
@@ -92,13 +102,14 @@ def app(environ, start_response):
 
     # The dict of pages we know how to serve, and their corresponding templates
     response = {
-                '/'        : index,      \
-                '/content' : content,    \
-                '/file'    : File,  \
-                '/image'   : Image, \
-                '/form'    : form,       \
-                '/submit'  : submit,     \
-                '404'      : fail,       \
+                '/'          : index,      \
+                '/content'   : content,    \
+                '/file'      : File,  \
+                '/image'     : Image, \
+                '/imagelist' : listImage, \
+                '/form'      : form,       \
+                '/submit'    : submit,     \
+                '404'        : fail,       \
                }
 
     # Manually add all other available pages/images
