@@ -35,7 +35,6 @@ def listImage(env, **kwargs):
     response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
 
     kwargs['images'] = listdir('images')
-    print(kwargs['images'])
     template = env.get_template('imagelist.html')
     data = [template.render(kwargs).encode('utf-8')]
 

@@ -8,7 +8,7 @@ from wsgiref.validate import validator
 from sys import stderr
 import argparse
 
-def handle_connection(conn, port, app):
+def handle_connection(conn, port, wsgi_app):
     """Takes a socket connection, and serves a WSGI app over it.
         Connection is closed when app is served."""
     
@@ -81,7 +81,39 @@ def handle_connection(conn, port, app):
     
     # Get the application
 
+    ## VALIDATION ##
+    wsgi_app = validator(wsgi_app)
+    ## VALIDATION ##
+
+    result = wsgi_app(env, start_response)
+
+    # Serve the processed data
+    for data in result:
+        conn.send(data)
+
+    # Close the connection; we're done here
+    result.close()
+    conn.close()
+
+def main():
+    """Waits for a connection, then serves a WSGI app using handle_connection"""
+    # Create a socket object
+    sock = socket.socket()
     
+    # Get local machine name (fully qualified domain name)
+    host = socket.getfqdn()
+
+    argParser = argparse.ArgumentParser(description='Set up WSGI server')
+    argParser.add_argument('-A', metavar='App', type=str, nargs=1, \
+                            default=['myapp'], \
+                            choices=['myapp', 'imageapp', 'altdemo'], \
+                            help='Select which app to run', dest='app')
+    argParser.add_argument('-p', metavar='Port', type=int, nargs=1, \
+                            default=-1, help='Select a port to run on', \
+                            dest='p')
+    argVals = argParser.parse_args()
+
+    app = argVals.app[0]
     if app == 'altdemo': 
         ## Quixote altdemo
         import quixote
@@ -114,38 +146,6 @@ def handle_connection(conn, port, app):
         wsgi_app = make_app()
         ## 
 
-    ## VALIDATION ##
-    wsgi_app = validator(wsgi_app)
-    ## VALIDATION ##
-
-    result = wsgi_app(env, start_response)
-
-    # Serve the processed data
-    for data in result:
-        conn.send(data)
-
-    # Close the connection; we're done here
-    result.close()
-    conn.close()
-
-def main():
-    """Waits for a connection, then serves a WSGI app using handle_connection"""
-    # Create a socket object
-    sock = socket.socket()
-    
-    # Get local machine name (fully qualified domain name)
-    host = socket.getfqdn()
-
-    argParser = argparse.ArgumentParser(description='Set up WSGI server')
-    argParser.add_argument('-A', metavar='App', type=str, nargs=1, \
-                            default='myapp', \
-                            choices=['myapp', 'imageapp', 'altdemo'], \
-                            help='Select which app to run', dest='app')
-    argParser.add_argument('-p', metavar='Port', type=int, nargs=1, \
-                            default=-1, help='Select a port to run on', \
-                            dest='p')
-    argVals = argParser.parse_args()
-
     # Bind to a (random) port
     port = argVals.p[0] if argVals.p != -1 else random.randint(8000,9999)
     sock.bind((host, port))
@@ -163,7 +163,7 @@ def main():
         # Establish connection with client.    
         conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(conn, port, app)
+        handle_connection(conn, port, wsgi_app)
         
 # boilerplate
 if __name__ == "__main__":
