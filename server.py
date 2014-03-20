@@ -4,9 +4,25 @@ import socket
 import time
 from urlparse import urlparse
 from StringIO import StringIO
-from app import make_app
 from wsgiref.validate import validator
 from sys import stderr
+
+## My app.py
+from app import make_app
+##
+
+## Quixhote
+#import quixote
+#from quixote.demo.altdemo import create_publisher
+#p = create_publisher()
+##
+
+## Image app
+#import quixote
+#import imageapp
+#imageapp.setup()
+#p = imageapp.create_publisher()
+##
 
 def handle_connection(conn, port):
     """Takes a socket connection, and serves a WSGI app over it.
@@ -46,6 +62,7 @@ def handle_connection(conn, port):
     env['wsgi.multiprocess'] = False
     env['wsgi.run_once']     = False
     env['wsgi.url_scheme'] = 'http'
+    env['HTTP_COOKIE'] = headers['cookie'] if 'cookie' in headers.keys() else ''
 
     # Start response function for WSGI interface
     def start_response(status, response_headers):
@@ -79,8 +96,19 @@ def handle_connection(conn, port):
     env['wsgi.input'] = StringIO(content)
     
     # Get the application
+
+    ## My app.py
     wsgi_app = make_app()
+    ## 
     
+    ## Quixote alt.demo
+    #wsgi_app = quixote.get_wsgi_app()
+    ##
+
+    ## Imageapp
+    #wsgi_app = quixote.get_wsgi_app()
+    ##
+
     ## VALIDATION ##
     wsgi_app = validator(wsgi_app)
     ## VALIDATION ##
@@ -92,6 +120,7 @@ def handle_connection(conn, port):
         conn.send(data)
 
     # Close the connection; we're done here
+    result.close()
     conn.close()
 
 def main():
@@ -103,7 +132,8 @@ def main():
     host = socket.getfqdn()
 
     # Bind to a (random) port
-    port = random.randint(8000, 9999)
+    # port = random.randint(8000, 9999)
+    port = 8088
     sock.bind((host, port))
 
     print 'Starting server on', host, port
@@ -117,7 +147,7 @@ def main():
         # Establish connection with client.    
         conn, (client_host, client_port) = sock.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(conn, client_port)
+        handle_connection(conn, port)
         
 # boilerplate
 if __name__ == "__main__":
