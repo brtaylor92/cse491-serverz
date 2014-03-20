@@ -104,24 +104,21 @@ def main():
     host = socket.getfqdn()
 
     argParser = argparse.ArgumentParser(description='Set up WSGI server')
-    argParser.add_argument('-A', metavar='App', type=str, nargs=1, \
-                            default=['myapp'], \
-                            choices=['myapp', 'imageapp', 'altdemo'], \
+    argParser.add_argument('-A', metavar='App', type=str,
+                            default=['myapp'],
+                            choices=['myapp', 'imageapp', 'altdemo'],
                             help='Select which app to run', dest='app')
-    argParser.add_argument('-p', metavar='Port', type=int, nargs=1, \
-                            default=-1, help='Select a port to run on', \
+    argParser.add_argument('-p', metavar='Port', type=int,
+                            default=-1, help='Select a port to run on',
                             dest='p')
     argVals = argParser.parse_args()
 
-    app = argVals.app[0]
+    app = argVals.app
     if app == 'altdemo': 
         ## Quixote altdemo
         import quixote
         from quixote.demo.altdemo import create_publisher
-        try:
-            p = create_publisher()
-        except RuntimeError:
-            pass
+        p = create_publisher()
         wsgi_app = quixote.get_wsgi_app()
         ##
 
@@ -130,10 +127,7 @@ def main():
         import quixote
         import imageapp
         from imageapp import create_publisher
-        try:
-            p = create_publisher()
-        except RuntimeError:
-            pass
+        p = create_publisher()
         imageapp.setup()
         wsgi_app = quixote.get_wsgi_app()
         ##
@@ -147,7 +141,7 @@ def main():
         ## 
 
     # Bind to a (random) port
-    port = argVals.p[0] if argVals.p != -1 else random.randint(8000,9999)
+    port = argVals.p if argVals.p != -1 else random.randint(8000,9999)
     sock.bind((host, port))
 
     print 'Starting server on', host, port

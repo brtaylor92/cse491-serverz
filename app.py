@@ -101,14 +101,14 @@ def app(environ, start_response):
 
     # The dict of pages we know how to serve, and their corresponding templates
     response = {
-                '/'          : index,      \
-                '/content'   : content,    \
-                '/file'      : File,  \
-                '/image'     : Image, \
-                '/imagelist' : listImage, \
-                '/form'      : form,       \
-                '/submit'    : submit,     \
-                '404'        : fail,       \
+                '/'          : index,
+                '/content'   : content,
+                '/file'      : File,
+                '/image'     : Image,
+                '/imagelist' : listImage,
+                '/form'      : form,
+                '/submit'    : submit,
+                '404'        : fail,
                }
 
     # Manually add all other available pages/images
@@ -135,8 +135,8 @@ def app(environ, start_response):
         # Re-parse the headers into a format field storage can use
         # Dashes instead of underscores, all lowercased
         headers = { 
-                    key[5:].lower().replace('_','-') : val \
-                    for key, val in environ.iteritems()    \
+                    key[5:].lower().replace('_','-') : val
+                    for key, val in environ.iteritems()
                     if(key.startswith('HTTP'))
                   }
         # Pull in the non-HTTP variables that field storage needs manually
@@ -150,14 +150,14 @@ def app(environ, start_response):
             data = environ['wsgi.input'].read(cLen)
             environ['wsgi.input'] = StringIO(data)
 
-        fs = cgi.FieldStorage(fp=environ['wsgi.input'], \
+        fs = cgi.FieldStorage(fp=environ['wsgi.input'],
                                 headers=headers, environ=environ)
         # Add these new args to the existing set
         args.update({key : fs[key].value for key in fs.keys()})
 
     # Get all the arguments in unicode form for Jinja
     args = {
-            key.decode('utf-8') : val.decode('utf-8') \
+            key.decode('utf-8') : val.decode('utf-8')
             for key, val in args.iteritems()
            }
     
