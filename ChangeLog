@@ -26,3 +26,7 @@
 2014-02-13	Ben Taylor <taylo886@arctic.cse.msu.edu>
 	*	Update to work with unicode
 	*	Make app and server separate, wsgi compliant
+2014-03-20
+	* 	Added /imagelist url to display thumbnails of all images
+		* New template with for-loop
+		* New app function to list images in the dir
