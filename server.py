@@ -134,8 +134,8 @@ def main():
 
     elif app == 'chat':
         ## Chat app
-        from chat import make_app
-        wsgi_app = make_app()
+        from chat.apps import ChatApp as make_app
+        wsgi_app = make_app('chat/html')
         ##
 
     else:
