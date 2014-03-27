@@ -19,7 +19,7 @@ class QuotesApp(object):
          quote = random.choice(self.quotes)
 
          start_response("200 OK", [('Content-type', 'text/html')])
-         return quote
+         return [quote]
 
       # by default, just return a file
       return self.file_server(environ, start_response)
@@ -33,7 +33,7 @@ class FileServer(object):
       
       print 'url:' + url
       if url.endswith('/'):
-          url += 'index.html'
+          url += 'quotes-2.html'
           
       fullpath = self.path + url
       fullpath = os.path.abspath(fullpath)
