@@ -30,3 +30,6 @@
 	* 	Added /imagelist url to display thumbnails of all images
 		* New template with for-loop
 		* New app function to list images in the dir
+
+2014-03-27
+	*	Look at twill (dev branch) on my github
