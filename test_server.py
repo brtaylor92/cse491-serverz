@@ -1,4 +1,5 @@
 import server
+from app import make_app
 
 class FakeConnection(object):
     """
@@ -29,23 +30,26 @@ def test_handle_connection_slash():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_content():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 200 OK\r\n'
-
-    server.handle_connection(conn, 80)
+    
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
 def test_handle_connection_file():
     conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 200 OK\r\n'
-
-    server.handle_connection(conn, 80)
+    
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
@@ -53,7 +57,8 @@ def test_handle_connection_image():
     conn = FakeConnection("GET /image HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
@@ -61,15 +66,17 @@ def test_get_form():
     conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
 def test_404():
     conn = FakeConnection("GET /asdf HTTP/1.0\r\n\r\n")
     er = 'HTTP/1.0 404 Not Found\r\n'
-
-    server.handle_connection(conn, 80)
+    
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
@@ -80,7 +87,8 @@ def test_submit_get():
                            HTTP/1.0\r\n\r\n".format(fname, lname))
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)  
 
@@ -93,7 +101,8 @@ def test_submit_post_urlencoded():
                            "firstname={0}&lastname={1}\r\n".format(fname, lname))
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
@@ -120,7 +129,8 @@ def test_submit_post_multipart():
     lname = 'taylor'
     er = 'HTTP/1.0 200 OK\r\n'
 
-    server.handle_connection(conn, 80)
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     assert conn.sent[:len(er)] == er, 'Got: %s' % (repr(conn.sent),)
 
@@ -129,7 +139,9 @@ def test_submit_post_404():
                           "Content-Length: 0\r\n" + \
                           "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
                          )
-    server.handle_connection(conn, 80)
+    
+    app = make_app()
+    server.handle_connection(conn, 80, app)
 
     er = 'HTTP/1.0 404 Not Found\r\n'
 
