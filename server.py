@@ -106,7 +106,8 @@ def main():
     argParser = argparse.ArgumentParser(description='Set up WSGI server')
     argParser.add_argument('-A', metavar='App', type=str,
                             default=['myapp'],
-                            choices=['myapp', 'imageapp', 'altdemo'],
+                            choices=['myapp', 'imageapp', 'altdemo', 
+                                     'chat', 'quotes'],
                             help='Select which app to run', dest='app')
     argParser.add_argument('-p', metavar='Port', type=int,
                             default=-1, help='Select a port to run on',
@@ -131,6 +132,17 @@ def main():
         imageapp.setup()
         wsgi_app = quixote.get_wsgi_app()
         ##
+
+    elif app == 'chat':
+        ## Chat app
+        from chat.apps import ChatApp as make_app
+        wsgi_app = make_app('chat/html')
+        ##
+
+    elif app == 'quotes':
+        ## Chat app
+        from quotes.apps import QuotesApp as make_app
+        wsgi_app = make_app('quotes/quotes.txt', 'quotes/html')
 
     else:
         ## My app.py
