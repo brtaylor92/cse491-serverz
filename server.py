@@ -107,7 +107,7 @@ def main():
     argParser.add_argument('-A', metavar='App', type=str,
                             default=['myapp'],
                             choices=['myapp', 'imageapp', 'altdemo', 
-                                     'chat', 'quotes'],
+                                     'chat', 'quotes', 'cookie'],
                             help='Select which app to run', dest='app')
     argParser.add_argument('-p', metavar='Port', type=int,
                             default=-1, help='Select a port to run on',
@@ -143,6 +143,11 @@ def main():
         ## Chat app
         from quotes.apps import QuotesApp as make_app
         wsgi_app = make_app('quotes/quotes.txt', 'quotes/html')
+
+    elif app == 'cookie':
+        ## Cookie app
+        import cookieapp
+        wsgi_app = cookieapp.wsgi_app
 
     else:
         ## My app.py
