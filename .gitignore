@@ -4,3 +4,5 @@
 htmlcov
 cse491.env/
 .twill-history
+images.db
+images.sqlite
