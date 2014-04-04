@@ -1,5 +1,6 @@
 # image handling API
 import cPickle
+import sqlite3
 import os
 
 IMAGE_DB_FILE = 'images.db'
@@ -10,13 +11,7 @@ def initialize():
     load()
 
 def load():
-    global images
-    if os.path.exists(IMAGE_DB_FILE):
-        fp = open(IMAGE_DB_FILE, 'rb')
-        images = cPickle.load(fp)
-        fp.close()
-
-        print 'Loaded: %d images' % (len(images))
+    return
 
 def save():
     fp = open(IMAGE_DB_FILE, 'wb')
@@ -24,20 +19,23 @@ def save():
     fp.close()
 
 def add_image(data):
-    if images:
-        image_num = max(images.keys()) + 1
-    else:
-        image_num = 0
-        
-    images[image_num] = data
-
-    save()
-    
-    return image_num
+    db = sqlite3.connect('images.sqlite')
+    db.text_factory = bytes
+    db.execute('INSERT INTO image_store (image) VALUES(?)', (data,))
+    db.commit()
 
 def get_image(num):
-    return images[num]
+    db = sqlite3.connect('images.sqlite')
+    db.text_factory = bytes
+    c = db.cursor()
+    c.execute('SELECT i,image FROM image_store WHERE i IS', num)
+    i, image = c.fetchone()
+    return image
 
 def get_latest_image():
-    image_num = max(images.keys())
-    return images[image_num]
+    db = sqlite3.connect('images.sqlite')
+    db.text_factory = bytes
+    c = db.cursor()
+    c.execute('SELECT i,image FROM image_store ORDER BY i DESC LIMIT 1')
+    i, image = c.fetchone()
+    return image

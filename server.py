@@ -128,9 +128,17 @@ def main():
         import quixote
         import imageapp
         from imageapp import create_publisher
+        import sqlite3
         p = create_publisher()
         imageapp.setup()
         wsgi_app = quixote.get_wsgi_app()
+        db = sqlite3.connect('images.sqlite')
+        db.execute(
+                    'CREATE TABLE IF NOT EXISTS image_store \
+                    (i INTEGER PRIMARY KEY AUTOINCREMENT, image BLOB)'\
+                  )
+        db.commit()
+        db.close()
         ##
 
     elif app == 'chat':
