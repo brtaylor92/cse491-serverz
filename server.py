@@ -133,10 +133,14 @@ def main():
         imageapp.setup()
         wsgi_app = quixote.get_wsgi_app()
         db = sqlite3.connect('images.sqlite')
-        db.execute(
+        db.text_factory = bytes
+        c = db.cursor()
+        c.execute(
                     'CREATE TABLE IF NOT EXISTS image_store \
                     (i INTEGER PRIMARY KEY AUTOINCREMENT, image BLOB)'\
                   )
+        img = open('imageapp/dice.png', 'rb').read()
+        c.execute("INSERT INTO image_store (image) VALUES(?)", (img,))
         db.commit()
         db.close()
         ##
@@ -148,14 +152,16 @@ def main():
         ##
 
     elif app == 'quotes':
-        ## Chat app
+        ## Quotes app
         from quotes.apps import QuotesApp as make_app
         wsgi_app = make_app('quotes/quotes.txt', 'quotes/html')
+        ##
 
     elif app == 'cookie':
         ## Cookie app
         import cookieapp
         wsgi_app = cookieapp.wsgi_app
+        ##
 
     else:
         ## My app.py
